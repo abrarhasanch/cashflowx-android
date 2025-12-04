@@ -1,0 +1,53 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../auth/controllers/auth_controller.dart';
+import '../auth/views/login_screen.dart';
+import '../auth/views/signup_screen.dart';
+import '../auth/views/splash_screen.dart';
+import '../books/views/book_workspace_screen.dart';
+import '../books/views/books_screen.dart';
+import '../providers/firebase_providers.dart';
+import '../settings/views/settings_screen.dart';
+import '../shelves/views/shelves_screen.dart';
+
+final appRouterProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authStateChangesProvider);
+  final auth = ref.watch(firebaseAuthProvider);
+
+  return GoRouter(
+    initialLocation: '/',
+    debugLogDiagnostics: false,
+    redirect: (context, state) {
+      final isLoading = authState.isLoading;
+      final loggedIn = authState.valueOrNull != null;
+      final goingToAuth = state.matchedLocation.startsWith('/auth');
+      if (isLoading) return null;
+      if (!loggedIn) {
+        return goingToAuth ? null : '/auth/login';
+      }
+      if (goingToAuth || state.matchedLocation == '/') {
+        return '/shelves';
+      }
+      return null;
+    },
+    routes: [
+      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+      GoRoute(path: '/auth/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(path: '/auth/signup', builder: (context, state) => const SignupScreen()),
+      GoRoute(path: '/shelves', builder: (context, state) => const ShelvesScreen()),
+      GoRoute(
+        path: '/shelves/:shelfId/books',
+        builder: (context, state) => BooksScreen(shelfId: state.pathParameters['shelfId']!),
+      ),
+      GoRoute(
+        path: '/shelves/:shelfId/books/:bookId',
+        builder: (context, state) => BookWorkspaceScreen(
+          shelfId: state.pathParameters['shelfId']!,
+          bookId: state.pathParameters['bookId']!,
+        ),
+      ),
+      GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
+    ],
+  );
+});

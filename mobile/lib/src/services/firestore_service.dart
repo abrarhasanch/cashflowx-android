@@ -1,0 +1,249 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:uuid/uuid.dart';
+
+import '../models/book.dart';
+import '../models/contact.dart';
+import '../models/friend_loan.dart';
+import '../models/loan_event.dart';
+import '../models/member.dart';
+import '../models/shelf.dart';
+import '../models/transaction.dart';
+
+class FirestoreService {
+  FirestoreService(this._firestore, this._dynamicLinks);
+
+  final FirebaseFirestore _firestore;
+  final FirebaseDynamicLinks _dynamicLinks;
+  final _uuid = const Uuid();
+
+  CollectionReference<Map<String, dynamic>> get _shelves => _firestore.collection('shelves');
+
+  CollectionReference<Map<String, dynamic>> _books(String shelfId) => _shelves.doc(shelfId).collection('books');
+
+  CollectionReference<Map<String, dynamic>> _transactions(String shelfId, String bookId) =>
+      _books(shelfId).doc(bookId).collection('transactions');
+
+  CollectionReference<Map<String, dynamic>> _contacts(String shelfId, String bookId) =>
+      _books(shelfId).doc(bookId).collection('contacts');
+
+  CollectionReference<Map<String, dynamic>> _loanPairs(String shelfId, String bookId) =>
+      _books(shelfId).doc(bookId).collection('friends_loans');
+
+  DocumentReference<Map<String, dynamic>> _loanDoc(String shelfId, String bookId, String loanId) =>
+      _loanPairs(shelfId, bookId).doc(loanId);
+
+  Future<Shelf> createShelf(Shelf shelf) async {
+    final doc = _shelves.doc();
+    final payload = shelf.copyWith(id: doc.id);
+    // Convert to JSON and ensure members are properly serialized
+    final json = payload.toJson();
+    json['members'] = payload.members.map((m) => m.toJson()).toList();
+    await doc.set(json);
+    return payload;
+  }
+
+  Future<void> updateShelf(Shelf shelf) {
+    // Convert to JSON and ensure members are properly serialized
+    final json = shelf.toJson();
+    json['members'] = shelf.members.map((m) => m.toJson()).toList();
+    return _shelves.doc(shelf.id).update(json);
+  }
+
+  Future<void> deleteShelf(String shelfId) async {
+    await _shelves.doc(shelfId).delete();
+  }
+
+  Stream<List<Shelf>> watchShelvesForUser(String uid) {
+    return _shelves.where('memberUids', arrayContains: uid).snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => Shelf.fromJson({...doc.data(), 'id': doc.id})).toList();
+    });
+  }
+
+  Future<Book> createBook(Book book) async {
+    final doc = _books(book.shelfId).doc();
+    final payload = book.copyWith(id: doc.id);
+    // Convert to JSON and ensure members are properly serialized
+    final json = payload.toJson();
+    json['members'] = payload.members.map((m) => m.toJson()).toList();
+    await doc.set(json);
+    return payload;
+  }
+
+  Future<void> updateBook(Book book) {
+    // Convert to JSON and ensure members are properly serialized
+    final json = book.toJson();
+    json['members'] = book.members.map((m) => m.toJson()).toList();
+    return _books(book.shelfId).doc(book.id).update(json);
+  }
+
+  Future<void> deleteBook({required String shelfId, required String bookId}) {
+    return _books(shelfId).doc(bookId).delete();
+  }
+
+  Stream<List<Book>> watchBooks(String shelfId) {
+    return _books(shelfId).orderBy('createdAt', descending: true).snapshots().map(
+          (snapshot) => snapshot.docs.map((doc) => Book.fromJson({...doc.data(), 'id': doc.id})).toList(),
+        );
+  }
+
+  Stream<Book?> watchBook({required String shelfId, required String bookId}) {
+    if (shelfId.isEmpty || bookId.isEmpty) {
+      return const Stream<Book?>.empty();
+    }
+    return _books(shelfId).doc(bookId).snapshots().map((snapshot) {
+      final data = snapshot.data();
+      if (data == null) {
+        return null;
+      }
+      return Book.fromJson({...data, 'id': snapshot.id});
+    });
+  }
+
+  Stream<List<BookTransaction>> watchTransactions({required String shelfId, required String bookId}) {
+    return _transactions(shelfId, bookId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => BookTransaction.fromJson({...doc.data(), 'id': doc.id})).toList());
+  }
+
+  Future<void> addTransaction(BookTransaction transaction) {
+    final doc = _transactions(transaction.shelfId, transaction.bookId).doc();
+    return doc.set(transaction.copyWith(id: doc.id).toJson());
+  }
+
+  Future<void> deleteTransaction({required String shelfId, required String bookId, required String transactionId}) {
+    return _transactions(shelfId, bookId).doc(transactionId).delete();
+  }
+
+  Stream<List<Contact>> watchContacts({required String shelfId, required String bookId}) {
+    return _contacts(shelfId, bookId)
+        .orderBy('name')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => Contact.fromJson({...doc.data(), 'id': doc.id})).toList());
+  }
+
+  Future<void> upsertContact(Contact contact) {
+    final collection = _contacts(contact.shelfId, contact.bookId);
+    final doc = contact.id.isEmpty ? collection.doc() : collection.doc(contact.id);
+    final payload = contact.copyWith(id: doc.id);
+    return doc.set(payload.toJson());
+  }
+
+  Future<void> deleteContact({required String shelfId, required String bookId, required String contactId}) {
+    return _contacts(shelfId, bookId).doc(contactId).delete();
+  }
+
+  Stream<List<FriendLoan>> watchLoans({required String shelfId, required String bookId}) {
+    return _loanPairs(shelfId, bookId)
+        .orderBy('updatedAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => FriendLoan.fromJson({...doc.data(), 'id': doc.id})).toList());
+  }
+
+  Future<FriendLoan> createLoan(FriendLoan loan) async {
+    final doc = _loanPairs(loan.shelfId, loan.bookId).doc();
+    final payload = loan.copyWith(id: doc.id, createdAt: loan.createdAt ?? DateTime.now(), updatedAt: DateTime.now());
+    await doc.set(payload.toJson());
+    return payload;
+  }
+
+  Stream<List<LoanEvent>> watchLoanEvents({required String shelfId, required String bookId, required String loanId}) {
+    return _loanDoc(shelfId, bookId, loanId)
+        .collection('events')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => LoanEvent.fromJson({...doc.data(), 'id': doc.id})).toList());
+  }
+
+  Future<void> addLoanEvent({
+    required String shelfId,
+    required String bookId,
+    required String loanId,
+    required LoanEvent event,
+  }) async {
+    final loanRef = _loanDoc(shelfId, bookId, loanId);
+    final eventRef = loanRef.collection('events').doc();
+    await eventRef.set(event.copyWith(id: eventRef.id).toJson());
+    await _updateLoanTotals(loanRef, event);
+  }
+
+  Future<void> settleLoan({required String shelfId, required String bookId, required String loanId}) async {
+    final loanRef = _loanDoc(shelfId, bookId, loanId);
+    await loanRef.update({'net': 0, 'totalYouGave': 0, 'totalYouTook': 0, 'updatedAt': FieldValue.serverTimestamp()});
+  }
+
+  Future<void> addMemberToBook({
+    required String shelfId,
+    required String bookId,
+    required ShelfMember member,
+  }) {
+    final doc = _books(shelfId).doc(bookId);
+    return doc.update({
+      'members': FieldValue.arrayUnion([member.toJson()]),
+      'memberUids': FieldValue.arrayUnion([member.uid]),
+    });
+  }
+
+  Future<void> removeMember({required String shelfId, required String bookId, required String uid}) {
+    final doc = _books(shelfId).doc(bookId);
+    return _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(doc);
+      final data = snapshot.data() ?? {};
+        final members = (data['members'] as List<dynamic>? ?? [])
+          .map((m) => ShelfMember.fromJson(Map<String, dynamic>.from(m as Map<dynamic, dynamic>)))
+          .where((member) => member.uid != uid)
+          .map((member) => member.toJson())
+          .toList();
+      final memberUids = (data['memberUids'] as List<dynamic>? ?? []).where((id) => id != uid).toList();
+      transaction.update(doc, {
+        'members': members,
+        'memberUids': memberUids,
+      });
+    });
+  }
+
+  Future<String> generateInviteLink({required String shelfId, required String bookId}) async {
+    final link = await _dynamicLinks.buildLink(
+      DynamicLinkParameters(
+        link: Uri.parse('https://cashflowx.app.link/invite?shelf=$shelfId&book=$bookId'),
+        uriPrefix: 'https://cashflowx.app.link',
+        androidParameters: const AndroidParameters(packageName: 'com.abrar.cashflowx'),
+        iosParameters: const IOSParameters(bundleId: 'com.abrar.cashflowx'),
+      ),
+    );
+    return link.toString();
+  }
+
+  Future<void> _updateLoanTotals(DocumentReference<Map<String, dynamic>> loanRef, LoanEvent event) {
+    return _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(loanRef);
+      final data = snapshot.data() ?? {};
+      var totalYouGave = (data['totalYouGave'] ?? 0).toDouble();
+      var totalYouTook = (data['totalYouTook'] ?? 0).toDouble();
+
+      switch (event.type) {
+        case LoanEventType.youLent:
+          totalYouGave += event.amount;
+          break;
+        case LoanEventType.youBorrowed:
+          totalYouTook += event.amount;
+          break;
+        case LoanEventType.repayment:
+          totalYouTook -= event.amount;
+          break;
+        case LoanEventType.settlement:
+          totalYouGave = 0;
+          totalYouTook = 0;
+          break;
+      }
+      final net = totalYouGave - totalYouTook;
+      transaction.update(loanRef, {
+        'totalYouGave': totalYouGave,
+        'totalYouTook': totalYouTook,
+        'net': net,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "887389400100",
+    "firebase_url": "https://cash-flow-x-default-rtdb.firebaseio.com",
+    "project_id": "cash-flow-x",
+    "storage_bucket": "cash-flow-x.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:887389400100:android:50b1ba62da234b4eadfcb1",
+        "android_client_info": {
+          "package_name": "com.abrar.cashflowx"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVzqXnt-PZAfD5lmVR1AZ9DcQKFVd5JDw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

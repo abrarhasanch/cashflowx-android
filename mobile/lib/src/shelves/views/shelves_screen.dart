@@ -6,6 +6,8 @@ import '../../auth/controllers/auth_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../../providers/shelf_providers.dart';
+import '../../providers/book_providers.dart';
+import '../../providers/loan_providers.dart';
 
 class ShelvesScreen extends ConsumerWidget {
   const ShelvesScreen({super.key});
@@ -103,36 +105,98 @@ class ShelvesScreen extends ConsumerWidget {
               shelves.when(
                 loading: () => const SizedBox.shrink(),
                 error: (_, __) => const SizedBox.shrink(),
-                data: (data) => Row(
-                  children: [
-                    Expanded(
-                      child: _StatCard(
-                        icon: Icons.shelves,
-                        iconColor: AppTheme.accentPurple,
-                        value: data.length.toString(),
-                        label: 'Active Shelves',
+                data: (data) {
+                  final stats = _HomeOverviewTotals(shelfCount: data.length);
+
+                  for (final shelf in data) {
+                    final booksAsync = ref.watch(booksProvider(shelf.id));
+                    booksAsync.when(
+                      data: (books) {
+                        stats.totalBooks += books.length;
+                        stats.totalCashIn += books.fold<double>(0, (sum, book) => sum + book.totalIn);
+                        stats.totalCashOut += books.fold<double>(0, (sum, book) => sum + book.totalOut);
+                        for (final book in books) {
+                          final loansAsync = ref.watch(loansProvider((shelf.id, book.id)));
+                          loansAsync.when(
+                            data: (loans) {
+                              stats.activeLoans += loans.where((loan) => loan.net.abs() > 0).length;
+                            },
+                            loading: () {},
+                            error: (_, __) {},
+                          );
+                        }
+                      },
+                      loading: () {},
+                      error: (_, __) {},
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _StatCard(
+                              icon: Icons.shelves,
+                              iconColor: AppTheme.accentPurple,
+                              value: stats.shelfCount.toString(),
+                              label: 'Active Shelves',
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _StatCard(
+                              icon: Icons.book_outlined,
+                              iconColor: AppTheme.successGreen,
+                              value: stats.totalBooks.toString(),
+                              label: 'Total Books',
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _StatCard(
+                              icon: Icons.account_balance_wallet_outlined,
+                              iconColor: AppTheme.warningOrange,
+                              value: stats.activeLoans.toString(),
+                              label: 'Active Loans',
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _StatCard(
-                        icon: Icons.trending_up,
-                        iconColor: AppTheme.successGreen,
-                        value: '0',
-                        label: 'Total Books',
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _StatCard(
+                              icon: Icons.arrow_downward_rounded,
+                              iconColor: AppTheme.successGreen,
+                              value: _formatAmount(stats.totalCashIn),
+                              label: 'Cash In',
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _StatCard(
+                              icon: Icons.arrow_upward_rounded,
+                              iconColor: AppTheme.errorRed,
+                              value: _formatAmount(stats.totalCashOut),
+                              label: 'Cash Out',
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _StatCard(
+                              icon: Icons.trending_neutral_rounded,
+                              iconColor: AppTheme.textSecondary,
+                              value: _formatAmount(stats.netBalance),
+                              label: 'Net Balance',
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _StatCard(
-                        icon: Icons.receipt_long_outlined,
-                        iconColor: AppTheme.warningOrange,
-                        value: '0',
-                        label: 'Total Transactions',
-                      ),
-                    ),
-                  ],
-                ),
+                    ],
+                  );
+                },
               ),
 
               const SizedBox(height: 32),
@@ -416,6 +480,33 @@ class ShelvesScreen extends ConsumerWidget {
       },
     );
   }
+}
+
+class _HomeOverviewTotals {
+  _HomeOverviewTotals({required this.shelfCount});
+
+  final int shelfCount;
+  int totalBooks = 0;
+  double totalCashIn = 0;
+  double totalCashOut = 0;
+  int activeLoans = 0;
+
+  double get netBalance => totalCashIn - totalCashOut;
+}
+
+String _formatAmount(double value) {
+  final absValue = value.abs();
+  String formatted;
+  if (absValue >= 1000000) {
+    formatted = '${(absValue / 1000000).toStringAsFixed(1)}M';
+  } else if (absValue >= 1000) {
+    formatted = '${(absValue / 1000).toStringAsFixed(1)}K';
+  } else if (absValue >= 100) {
+    formatted = absValue.toStringAsFixed(0);
+  } else {
+    formatted = absValue.toStringAsFixed(2);
+  }
+  return value < 0 ? '-$formatted' : formatted;
 }
 
 class _IconButton extends StatelessWidget {

@@ -28,7 +28,7 @@ class ReportsScreen extends ConsumerWidget {
             title: 'All Accounts Loan Summary',
             subtitle: 'View loan summary across all accounts',
             onTap: () {
-              // TODO: Navigate to loan summary
+
             },
           ),
           const SizedBox(height: 12),
@@ -37,7 +37,7 @@ class ReportsScreen extends ConsumerWidget {
             title: 'Monthly Summary',
             subtitle: 'Month-by-month breakdown',
             onTap: () {
-              // TODO: Navigate to monthly summary
+
             },
           ),
           const SizedBox(height: 12),
@@ -46,7 +46,7 @@ class ReportsScreen extends ConsumerWidget {
             title: 'Custom Date Range',
             subtitle: 'Generate report for custom period',
             onTap: () {
-              // TODO: Navigate to custom summary
+
             },
           ),
           const SizedBox(height: 12),
@@ -56,7 +56,6 @@ class ReportsScreen extends ConsumerWidget {
             subtitle: 'Download reports as PDF',
             color: AppTheme.primaryGreen,
             onTap: () {
-              // TODO: Export PDF
             },
           ),
         ],

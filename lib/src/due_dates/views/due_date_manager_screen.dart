@@ -256,7 +256,7 @@ class _DueDateManagerScreenState extends ConsumerState<DueDateManagerScreen> {
                   ),
                 ),
                 Text(
-                  '₹${transaction.amount.toStringAsFixed(2)}',
+                  '৳${transaction.amount.toStringAsFixed(2)}',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

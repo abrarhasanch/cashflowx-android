@@ -115,19 +115,119 @@ class FirestoreService {
     });
   }
 
-  Future<void> updateTransaction(AccountTransaction transaction) {
-    return _transactions(transaction.accountId).doc(transaction.id).update(transaction.toJson());
-  }
+  Future<void> updateTransaction(AccountTransaction transaction) async {
+    final accountRef = _accounts.doc(transaction.accountId);
+    final transactionRef = _transactions(transaction.accountId).doc(transaction.id);
 
-  Future<void> markTransactionAsPaid(String accountId, String transactionId) {
-    return _transactions(accountId).doc(transactionId).update({
-      'isPaid': true,
-      'paidAt': FieldValue.serverTimestamp(),
+    await _firestore.runTransaction((txn) async {
+      // Get old transaction data
+      final oldTransactionDoc = await txn.get(transactionRef);
+      if (!oldTransactionDoc.exists) return;
+      
+      final oldTransaction = AccountTransaction.fromJson({
+        ...oldTransactionDoc.data()!,
+        'id': oldTransactionDoc.id,
+      });
+
+      // Get account data
+      final accountDoc = await txn.get(accountRef);
+      if (!accountDoc.exists) return;
+
+      final data = accountDoc.data()!;
+      double totalIn = data['totalIn'] ?? 0.0;
+      double totalOut = data['totalOut'] ?? 0.0;
+
+      // Remove old transaction amounts
+      if (oldTransaction.type == TransactionType.cashIn) {
+        totalIn -= oldTransaction.amount;
+      } else {
+        totalOut -= oldTransaction.amount;
+      }
+
+      // Add new transaction amounts
+      if (transaction.type == TransactionType.cashIn) {
+        totalIn += transaction.amount;
+      } else {
+        totalOut += transaction.amount;
+      }
+
+      // Update both transaction and account
+      txn.update(transactionRef, transaction.toJson());
+      txn.update(accountRef, {'totalIn': totalIn, 'totalOut': totalOut});
     });
   }
 
-  Future<void> deleteTransaction(String accountId, String transactionId) {
-    return _transactions(accountId).doc(transactionId).delete();
+  Future<void> markTransactionAsPaid(String accountId, String transactionId) async {
+    final txnRef = _transactions(accountId).doc(transactionId);
+    final txnSnap = await txnRef.get();
+    if (!txnSnap.exists) return;
+
+    final data = txnSnap.data()!;
+    final original = AccountTransaction.fromJson({...data, 'id': txnSnap.id});
+
+    // Mark original as paid
+    await txnRef.update({
+      'isPaid': true,
+      'paidAt': FieldValue.serverTimestamp(),
+    });
+
+    // Create counter repayment for both directions
+    final isCashIn = original.type == TransactionType.cashIn;
+    final counterType = isCashIn ? TransactionType.cashOut : TransactionType.cashIn;
+    final counterRef = _transactions(accountId).doc();
+
+    final counterTx = AccountTransaction(
+      id: counterRef.id,
+      accountId: accountId,
+      amount: original.amount,
+      type: counterType,
+      category: 'Repayment',
+      remark: isCashIn
+          ? 'Repayment for ${original.remark ?? original.id}'
+          : 'Reimbursement for ${original.remark ?? original.id}',
+      createdAt: DateTime.now(),
+      createdByUid: original.createdByUid,
+      isPaid: true,
+      paidAt: DateTime.now(),
+    );
+
+    await counterRef.set(counterTx.toJson());
+
+    // Update account totals for the counter transaction
+    await _accounts.doc(accountId).update({
+      isCashIn ? 'totalOut' : 'totalIn': FieldValue.increment(original.amount),
+    });
+  }
+
+  Future<void> deleteTransaction(String accountId, String transactionId) async {
+    final accountRef = _accounts.doc(accountId);
+    final transactionRef = _transactions(accountId).doc(transactionId);
+
+    await _firestore.runTransaction((txn) async {
+      final txnDoc = await txn.get(transactionRef);
+      if (!txnDoc.exists) return;
+
+      final accountDoc = await txn.get(accountRef);
+      if (!accountDoc.exists) return;
+
+      final accountData = accountDoc.data()!;
+      double totalIn = accountData['totalIn'] ?? 0.0;
+      double totalOut = accountData['totalOut'] ?? 0.0;
+
+      final transaction = AccountTransaction.fromJson({
+        ...txnDoc.data()!,
+        'id': txnDoc.id,
+      });
+
+      if (transaction.type == TransactionType.cashIn) {
+        totalIn -= transaction.amount;
+      } else {
+        totalOut -= transaction.amount;
+      }
+
+      txn.delete(transactionRef);
+      txn.update(accountRef, {'totalIn': totalIn, 'totalOut': totalOut});
+    });
   }
 
   // ==================== CONTACT METHODS ====================
@@ -185,7 +285,64 @@ class FirestoreService {
     await _updateLoanTotals(loanRef, event);
   }
 
-  Future<void> settleLoan(String accountId, String loanId) async {
+  Future<void> markLoanAsPaid(String accountId, String loanId) async {
+    // Simply mark the loan as settled without creating a transaction
+    final loanRef = _loanDoc(accountId, loanId);
+    await loanRef.update({
+      'net': 0,
+      'totalYouGave': 0,
+      'totalYouTook': 0,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> settleLoan(String accountId, String loanId, String userId) async {
+    // Get account to check balance
+    final accountDoc = await _accounts.doc(accountId).get();
+    if (!accountDoc.exists) throw Exception('Account not found');
+    
+    final accountData = accountDoc.data()!;
+    final totalIn = (accountData['totalIn'] ?? 0).toDouble();
+    final totalOut = (accountData['totalOut'] ?? 0).toDouble();
+    final balance = totalIn - totalOut;
+    
+    // Create settlement transaction based on balance
+    if (balance != 0) {
+      final settlementAmount = balance.abs();
+      final transactionRef = _accounts.doc(accountId).collection('transactions').doc();
+      
+      // If balance is positive (I Owe), create Cash Out transaction
+      // If balance is negative (They Owe), create Cash In transaction
+      final transactionType = balance > 0 ? TransactionType.cashOut : TransactionType.cashIn;
+      
+      final transaction = AccountTransaction(
+        id: transactionRef.id,
+        accountId: accountId,
+        amount: settlementAmount,
+        type: transactionType,
+        createdAt: DateTime.now(),
+        createdByUid: userId,
+        remark: 'Loan settlement',
+        category: 'Loan Settlement',
+        isPaid: true,
+        paidAt: DateTime.now(),
+      );
+      
+      await transactionRef.set(transaction.toJson());
+      
+      // Update account totals
+      if (transactionType == TransactionType.cashOut) {
+        await _accounts.doc(accountId).update({
+          'totalOut': FieldValue.increment(settlementAmount),
+        });
+      } else {
+        await _accounts.doc(accountId).update({
+          'totalIn': FieldValue.increment(settlementAmount),
+        });
+      }
+    }
+    
+    // Mark loan as settled
     final loanRef = _loanDoc(accountId, loanId);
     await loanRef.update({
       'net': 0,

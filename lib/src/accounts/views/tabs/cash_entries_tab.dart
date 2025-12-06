@@ -307,76 +307,104 @@ class _TransactionCard extends ConsumerWidget {
               
               const SizedBox(height: 12),
               
-              // Date and status row
-              Row(
+              // Date and status information
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: 14,
-                    color: AppTheme.textSecondary,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    DateFormat('MMM dd, yyyy').format(transaction.createdAt),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.textSecondary,
-                    ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 14,
+                        color: AppTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Created: ${DateFormat('MMM dd, yyyy').format(transaction.createdAt)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                   
                   if (transaction.dueDate != null) ...[
-                    const SizedBox(width: 16),
-                    Icon(
-                      Icons.event,
-                      size: 14,
-                      color: isOverdue ? Colors.red : AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Due: ${DateFormat('MMM dd').format(transaction.dueDate!)}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isOverdue ? Colors.red : AppTheme.textSecondary,
-                        fontWeight: isOverdue ? FontWeight.bold : FontWeight.normal,
-                      ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.event,
+                          size: 14,
+                          color: isOverdue ? Colors.red : AppTheme.textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Due: ${DateFormat('MMM dd, yyyy').format(transaction.dueDate!)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isOverdue ? Colors.red : AppTheme.textSecondary,
+                            fontWeight: isOverdue ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: transaction.isPaid
+                                ? Colors.green.withOpacity(0.2)
+                                : isOverdue
+                                    ? Colors.red.withOpacity(0.2)
+                                    : Colors.orange.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            transaction.isPaid
+                                ? 'Paid'
+                                : isOverdue
+                                    ? 'Overdue'
+                                    : 'Pending',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: transaction.isPaid
+                                  ? Colors.green
+                                  : isOverdue
+                                      ? Colors.red
+                                      : Colors.orange,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                   
-                  const Spacer(),
-                  
-                  if (transaction.dueDate != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: transaction.isPaid
-                            ? Colors.green.withOpacity(0.2)
-                            : isOverdue
-                                ? Colors.red.withOpacity(0.2)
-                                : Colors.orange.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        transaction.isPaid
-                            ? 'Paid'
-                            : isOverdue
-                                ? 'Overdue'
-                                : 'Pending',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: transaction.isPaid
-                              ? Colors.green
-                              : isOverdue
-                                  ? Colors.red
-                                  : Colors.orange,
+                  if (transaction.isPaid && transaction.paidAt != null) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.check_circle,
+                          size: 14,
+                          color: Colors.green,
                         ),
-                      ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Paid on: ${DateFormat('MMM dd, yyyy').format(transaction.paidAt!)}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.green,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
+                  ],
                 ],
               ),
               
-              // Mark as paid button for pending transactions
-              if (transaction.dueDate != null && !transaction.isPaid)
+              // Mark as paid button for unpaid transactions
+              if (!transaction.isPaid)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: SizedBox(
@@ -555,6 +583,29 @@ class _TransactionDetailSheet extends ConsumerWidget {
             
             const SizedBox(height: 24),
             
+            // Mark as Paid button for unpaid transactions
+            if (!transaction.isPaid)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      final controller = ref.read(transactionControllerProvider.notifier);
+                      await controller.markTransactionAsPaid(accountId, transaction.id);
+                      if (context.mounted) Navigator.pop(context);
+                    },
+                    icon: const Icon(Icons.check_circle),
+                    label: const Text('Mark as Paid'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+              ),
+            
             Row(
               children: [
                 Expanded(
@@ -692,6 +743,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
   
   TransactionType _type = TransactionType.cashIn;
   DateTime? _dueDate;
+  late DateTime _createdAt;
   bool _hasDueDate = false;
 
   @override
@@ -705,8 +757,12 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
       _type = widget.transaction!.type;
       _dueDate = widget.transaction!.dueDate;
       _hasDueDate = _dueDate != null;
+      _createdAt = widget.transaction!.createdAt;
     } else if (widget.initialType != null) {
       _type = widget.initialType!;
+      _createdAt = DateTime.now();
+    } else {
+      _createdAt = DateTime.now();
     }
   }
 
@@ -814,6 +870,58 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     ),
                   ),
                   maxLines: 2,
+                ),
+                
+                const SizedBox(height: 16),
+                // Transaction date/time
+                InkWell(
+                  onTap: () async {
+                    final pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: _createdAt,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                    );
+                    if (pickedDate == null) return;
+
+                    final pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(_createdAt),
+                    );
+
+                    final time = pickedTime ?? TimeOfDay.fromDateTime(_createdAt);
+                    setState(() {
+                      _createdAt = DateTime(
+                        pickedDate.year,
+                        pickedDate.month,
+                        pickedDate.day,
+                        time.hour,
+                        time.minute,
+                      );
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppTheme.textSecondary.withOpacity(0.3)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.access_time, color: AppTheme.textSecondary),
+                        const SizedBox(width: 12),
+                        Text(
+                          DateFormat('MMM dd, yyyy HH:mm').format(_createdAt),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(Icons.edit_calendar, color: AppTheme.textSecondary),
+                      ],
+                    ),
+                  ),
                 ),
                 
                 const SizedBox(height: 16),
@@ -946,7 +1054,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
       dueDate: _dueDate,
       isPaid: widget.transaction?.isPaid ?? false,
       paidAt: widget.transaction?.paidAt,
-      createdAt: widget.transaction?.createdAt ?? DateTime.now(),
+      createdAt: _createdAt,
     );
 
     if (widget.transaction != null) {

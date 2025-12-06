@@ -22,14 +22,15 @@ final loanEventsProvider = StreamProvider.family<List<LoanEvent>, ({String accou
 
 /// Controller for loan operations
 final loanControllerProvider = StateNotifierProvider<LoanController, AsyncValue<void>>((ref) {
-  return LoanController(ref.watch(firestoreServiceProvider), ref.watch(firebaseAuthProvider));
+  return LoanController(ref.watch(firestoreServiceProvider), ref.watch(firebaseAuthProvider), ref);
 });
 
 class LoanController extends StateNotifier<AsyncValue<void>> {
-  LoanController(this._service, this._auth) : super(const AsyncData(null));
+  LoanController(this._service, this._auth, this._ref) : super(const AsyncData(null));
 
   final FirestoreService _service;
   final _auth;
+  final Ref _ref;
 
   Future<FriendLoan?> createLoan(String accountId, String contactId) async {
     state = const AsyncLoading();
@@ -83,10 +84,27 @@ class LoanController extends StateNotifier<AsyncValue<void>> {
     }
   }
 
+  Future<void> markLoanAsPaid(String accountId, String loanId) async {
+    state = const AsyncLoading();
+    try {
+      await _service.markLoanAsPaid(accountId, loanId);
+      // Invalidate the loans provider to refresh the loan list and dashboard
+      _ref.invalidate(loansProvider(accountId));
+      state = const AsyncData(null);
+    } catch (e, stack) {
+      state = AsyncError(e, stack);
+    }
+  }
+
   Future<void> settleLoan(String accountId, String loanId) async {
     state = const AsyncLoading();
     try {
-      await _service.settleLoan(accountId, loanId);
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('No user logged in');
+      
+      await _service.settleLoan(accountId, loanId, user.uid);
+      // Invalidate the loans provider to refresh the loan list and dashboard
+      _ref.invalidate(loansProvider(accountId));
       state = const AsyncData(null);
     } catch (e, stack) {
       state = AsyncError(e, stack);

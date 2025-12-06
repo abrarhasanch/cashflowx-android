@@ -20,51 +20,52 @@ class AccountsListScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       drawer: const AppDrawer(),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      _IconButton(
-                        icon: Icons.menu,
-                        onTap: () => Scaffold.of(context).openDrawer(),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'ACCOUNTS',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppTheme.textSecondary,
-                                  letterSpacing: 1,
-                                ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Manage Your Accounts',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  color: AppTheme.textPrimary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  _IconButton(
-                    icon: Icons.add,
-                    onTap: () => _showCreateAccountSheet(context, ref, user?.defaultCurrency ?? 'USD'),
-                  ),
-                ],
-              ),
+      body: Builder(
+        builder: (scaffoldContext) => SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        _IconButton(
+                          icon: Icons.menu,
+                          onTap: () => Scaffold.of(scaffoldContext).openDrawer(),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'ACCOUNTS',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppTheme.textSecondary,
+                                    letterSpacing: 1,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Manage Your Accounts',
+                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                    color: AppTheme.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    _IconButton(
+                      icon: Icons.add,
+                      onTap: () => _showCreateAccountSheet(context, ref, 'BDT'),
+                    ),
+                  ],
+                ),
 
               const SizedBox(height: 24),
 
@@ -84,7 +85,7 @@ class AccountsListScreen extends ConsumerWidget {
                       message: 'No accounts yet',
                       subtitle: 'Create your first account to start tracking',
                       action: ElevatedButton.icon(
-                        onPressed: () => _showCreateAccountSheet(context, ref, user?.defaultCurrency ?? 'USD'),
+                        onPressed: () => _showCreateAccountSheet(context, ref, 'BDT'),
                         icon: const Icon(Icons.add),
                         label: const Text('Create Account'),
                         style: ElevatedButton.styleFrom(
@@ -118,24 +119,25 @@ class AccountsListScreen extends ConsumerWidget {
                 },
               ),
             ],
-          ),
-        ),
-      ),
+          ), // closing Column
+        ), // closing SingleChildScrollView
+      ), // closing SafeArea (arrow function return)
+      ), // end of Builder
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCreateAccountSheet(context, ref, user?.defaultCurrency ?? 'USD'),
+        onPressed: () => _showCreateAccountSheet(context, ref, 'BDT'),
         backgroundColor: AppTheme.primaryGreen,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('New Account'),
       ),
-    );
+    ); // end of Scaffold
   }
 
   void _showCreateAccountSheet(BuildContext context, WidgetRef ref, String defaultCurrency) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.surfaceDark,
+      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -173,9 +175,8 @@ class _AccountCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppTheme.surfaceDark,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.borderDark),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -409,9 +410,10 @@ class _CreateAccountSheetState extends ConsumerState<_CreateAccountSheet> {
             TextFormField(
               controller: _currencyController,
               style: TextStyle(color: AppTheme.textPrimary),
+              enabled: false,
               decoration: InputDecoration(
                 labelText: 'Currency',
-                hintText: 'USD',
+                hintText: 'BDT',
                 filled: true,
                 fillColor: AppTheme.cardDark,
                 border: OutlineInputBorder(
@@ -473,9 +475,8 @@ class _IconButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceDark,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.borderDark),
         ),
         child: Icon(icon, color: AppTheme.textPrimary, size: 20),
       ),

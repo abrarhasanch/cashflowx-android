@@ -1,5 +1,8 @@
+import 'dart:io' show Platform;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../models/app_user.dart';
@@ -50,7 +53,16 @@ class AuthRepository {
   }
 
   Future<void> signInWithGoogle() async {
-    final googleSignIn = GoogleSignIn();
+    if (kIsWeb) {
+      final provider = GoogleAuthProvider();
+      await _auth.signInWithPopup(provider);
+      return;
+    }
+
+    // Mobile/desktop
+    final googleSignIn = GoogleSignIn(
+      serverClientId: !kIsWeb && Platform.isIOS ? _auth.app.options.iosClientId : null,
+    );
     final account = await googleSignIn.signIn();
     if (account == null) return;
     final auth = await account.authentication;

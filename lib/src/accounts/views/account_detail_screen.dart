@@ -81,10 +81,9 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> with 
         final currencySymbol = AppTheme.getCurrencySymbol(account.currency);
 
         return Scaffold(
-          backgroundColor: AppTheme.backgroundDark,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: AppBar(
-            backgroundColor: AppTheme.surfaceDark,
-            foregroundColor: Colors.white,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
@@ -113,14 +112,18 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> with 
             actions: [
               IconButton(
                 icon: const Icon(Icons.edit_outlined),
-                onPressed: () {
-                  // TODO: Show edit account sheet
-                },
+                onPressed: () => _showEditAccountSheet(account),
+                tooltip: 'Edit Account',
               ),
               IconButton(
                 icon: const Icon(Icons.picture_as_pdf_outlined),
                 onPressed: () => _showExportDialog(account),
                 tooltip: 'Export PDF',
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () => _confirmDeleteAccount(account),
+                tooltip: 'Delete Account',
               ),
             ],
             bottom: TabBar(
@@ -155,6 +158,143 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> with 
           ),
         );
       },
+    );
+  }
+
+  void _showEditAccountSheet(Account account) {
+    final titleController = TextEditingController(text: account.title);
+    final descriptionController = TextEditingController(text: account.description ?? '');
+    String selectedCurrency = account.currency;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Edit Account',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Account Name',
+                    prefixIcon: Icon(Icons.account_balance),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description (Optional)',
+                    prefixIcon: Icon(Icons.description),
+                  ),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedCurrency,
+                  decoration: const InputDecoration(
+                    labelText: 'Currency',
+                    prefixIcon: Icon(Icons.currency_exchange),
+                  ),
+                  items: ['BDT']
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .toList(),
+                  onChanged: null, // Disable since only BDT is available
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (titleController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Account name is required'),
+                                backgroundColor: AppTheme.errorRed,
+                              ),
+                            );
+                            return;
+                          }
+
+                          final updatedAccount = account.copyWith(
+                            title: titleController.text.trim(),
+                            description: descriptionController.text.trim().isEmpty
+                                ? null
+                                : descriptionController.text.trim(),
+                            currency: selectedCurrency,
+                          );
+
+                          try {
+                            await ref
+                                .read(accountControllerProvider.notifier)
+                                .updateAccount(updatedAccount);
+                            
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Account updated successfully'),
+                                  backgroundColor: AppTheme.successGreen,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to update account: $e'),
+                                  backgroundColor: AppTheme.errorRed,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: const Text('Update'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -259,6 +399,37 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> with 
             backgroundColor: AppTheme.errorRed,
           ),
         );
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteAccount(Account account) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text('This will remove the account and its data. Continue?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final deleted = await ref.read(accountControllerProvider.notifier).deleteAccount(account.id);
+      if (deleted && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account deleted')),
+        );
+        context.go('/accounts');
       }
     }
   }

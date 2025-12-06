@@ -92,19 +92,30 @@ class SummaryTab extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 12),
-        loansAsync.when(
+        accountAsync.when(
           loading: () => const CircularProgressIndicator(),
           error: (e, _) => Text('Error: $e'),
-          data: (loans) {
-            final iOwe = loans.where((l) => l.net < 0).fold<double>(0, (sum, l) => sum + l.net.abs());
-            final theyOwe = loans.where((l) => l.net > 0).fold<double>(0, (sum, l) => sum + l.net);
+          data: (account) {
+            if (account == null) return const SizedBox();
+            
+            // Calculate based on account balance
+            final balance = account.totalIn - account.totalOut;
+            double iOwe = 0.0;
+            double theyOwe = 0.0;
+            
+            if (balance > 0) {
+              // Positive balance = I received more = I Owe
+              iOwe = balance;
+            } else if (balance < 0) {
+              // Negative balance = I gave more = They Owe
+              theyOwe = balance.abs();
+            }
 
             return Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.surfaceDark,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.borderDark),
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [

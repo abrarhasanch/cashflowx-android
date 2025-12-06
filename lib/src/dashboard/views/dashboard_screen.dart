@@ -89,6 +89,10 @@ class DashboardScreen extends ConsumerWidget {
                   final totalIn = accounts.fold<double>(0, (sum, acc) => sum + acc.totalIn);
                   final totalOut = accounts.fold<double>(0, (sum, acc) => sum + acc.totalOut);
                   final netBalance = totalIn - totalOut;
+                  
+                  // Get currency from first account or use default
+                  // Always use BDT
+                  final currencySymbol = '৳';
 
                   return Column(
                     children: [
@@ -98,6 +102,7 @@ class DashboardScreen extends ConsumerWidget {
                             child: _SummaryCard(
                               title: 'Total Cash In',
                               amount: totalIn,
+                              currencySymbol: currencySymbol,
                               icon: Icons.arrow_downward_rounded,
                               color: AppTheme.successGreen,
                             ),
@@ -107,6 +112,7 @@ class DashboardScreen extends ConsumerWidget {
                             child: _SummaryCard(
                               title: 'Total Cash Out',
                               amount: totalOut,
+                              currencySymbol: currencySymbol,
                               icon: Icons.arrow_upward_rounded,
                               color: AppTheme.errorRed,
                             ),
@@ -146,7 +152,7 @@ class DashboardScreen extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  '\$${_formatNumber(netBalance)}',
+                                  '$currencySymbol${_formatNumber(netBalance)}',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 32,
@@ -196,6 +202,11 @@ class DashboardScreen extends ConsumerWidget {
 
                       const SizedBox(height: 24),
 
+                      // Loan Summary Section
+                      _LoanPositionSection(accounts: accounts),
+
+                      const SizedBox(height: 24),
+
                       // Accounts List Section
                       _AccountsListSection(accounts: accounts),
 
@@ -223,12 +234,14 @@ class _SummaryCard extends StatelessWidget {
   const _SummaryCard({
     required this.title,
     required this.amount,
+    required this.currencySymbol,
     required this.icon,
     required this.color,
   });
 
   final String title;
   final double amount;
+  final String currencySymbol;
   final IconData icon;
   final Color color;
 
@@ -237,9 +250,8 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderDark),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,15 +273,15 @@ class _SummaryCard extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              color: AppTheme.textSecondary,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
               fontSize: 12,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            '\$${NumberFormat('#,##0.00').format(amount)}',
+            '$currencySymbol${NumberFormat('#,##0.00').format(amount)}',
             style: TextStyle(
-              color: AppTheme.textPrimary,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -296,9 +308,8 @@ class _LoanPositionSection extends ConsumerWidget {
         return Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppTheme.surfaceDark,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.borderDark),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,9 +319,9 @@ class _LoanPositionSection extends ConsumerWidget {
                   Icon(Icons.handshake_outlined, color: AppTheme.primaryGreen, size: 24),
                   const SizedBox(width: 12),
                   Text(
-                    'Loan Position',
+                    'Loan Summary',
                     style: TextStyle(
-                      color: AppTheme.textPrimary,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
@@ -327,13 +338,13 @@ class _LoanPositionSection extends ConsumerWidget {
                         Text(
                           'I Owe',
                           style: TextStyle(
-                            color: AppTheme.textSecondary,
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
                             fontSize: 14,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '\$${NumberFormat('#,##0.00').format(iOwe)}',
+                          '৳${NumberFormat('#,##0.00').format(iOwe)}',
                           style: TextStyle(
                             color: AppTheme.errorRed,
                             fontSize: 24,
@@ -346,7 +357,7 @@ class _LoanPositionSection extends ConsumerWidget {
                   Container(
                     width: 1,
                     height: 40,
-                    color: AppTheme.borderDark,
+                    color: Theme.of(context).dividerColor,
                   ),
                   Expanded(
                     child: Column(
@@ -355,13 +366,13 @@ class _LoanPositionSection extends ConsumerWidget {
                         Text(
                           'They Owe',
                           style: TextStyle(
-                            color: AppTheme.textSecondary,
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
                             fontSize: 14,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '\$${NumberFormat('#,##0.00').format(theyOwe)}',
+                          '৳${NumberFormat('#,##0.00').format(theyOwe)}',
                           style: TextStyle(
                             color: AppTheme.successGreen,
                             fontSize: 24,
@@ -384,19 +395,16 @@ class _LoanPositionSection extends ConsumerWidget {
     double iOwe = 0.0;
     double theyOwe = 0.0;
 
+    // Calculate based on account balances (totalIn - totalOut)
     for (final account in accounts) {
-      try {
-        final loans = await ref.read(loansProvider(account.id).future);
-        for (final loan in loans) {
-          if (loan.net < 0) {
-            iOwe += loan.net.abs();
-          } else if (loan.net > 0) {
-            theyOwe += loan.net;
-          }
-        }
-      } catch (e) {
-        // Skip accounts with errors
-        continue;
+      final balance = account.totalIn - account.totalOut;
+      
+      if (balance > 0) {
+        // Positive balance means I received more than I gave = I Owe
+        iOwe += balance;
+      } else if (balance < 0) {
+        // Negative balance means I gave more than I received = They Owe
+        theyOwe += balance.abs();
       }
     }
 
@@ -604,9 +612,8 @@ class _QuickActionCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceDark,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.borderDark),
         ),
         child: Column(
           children: [
@@ -715,7 +722,7 @@ class _AccountsListSection extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '₹${balance.toStringAsFixed(2)}',
+                          '৳${balance.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -759,9 +766,8 @@ class _IconButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceDark,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.borderDark),
         ),
         child: Icon(icon, color: AppTheme.textPrimary, size: 20),
       ),

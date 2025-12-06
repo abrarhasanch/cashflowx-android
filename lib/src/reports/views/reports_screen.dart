@@ -328,7 +328,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'In: ₹${account.totalIn.toStringAsFixed(2)} | Out: ₹${account.totalOut.toStringAsFixed(2)}',
+                          'In: ৳${account.totalIn.toStringAsFixed(2)} | Out: ৳${account.totalOut.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey[500],
@@ -338,7 +338,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     ),
                   ),
                   Text(
-                    '₹${balance.toStringAsFixed(2)}',
+                    '৳${balance.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -543,7 +543,7 @@ class _MetricCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '₹${value.toStringAsFixed(0)}',
+            '৳${value.toStringAsFixed(0)}',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,

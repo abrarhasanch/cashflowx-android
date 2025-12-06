@@ -1,8 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../auth/controllers/auth_controller.dart';
+import '../../models/app_user.dart';
 import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_drawer.dart';
@@ -15,10 +18,13 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   bool _notificationsEnabled = true;
   bool _dueDateReminders = true;
   bool _loanReminders = true;
-  String _selectedCurrency = 'INR';
+  String _selectedCurrency = 'BDT';
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +62,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppTheme.cardDark,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -80,10 +86,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         children: [
                           Text(
                             user.displayName ?? 'User',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: Theme.of(context).textTheme.bodyLarge?.color,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -91,11 +97,46 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             user.email,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[400],
+                              color: Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
                         ],
                       ),
+                    ),
+                    IconButton(
+                      onPressed: () => _showEditProfileDialog(user),
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        color: AppTheme.primaryGreen,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+              _buildSectionTitle('Account'),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.email_outlined, color: AppTheme.primaryGreen),
+                      title: const Text('Change email'),
+                      subtitle: Text(user.email),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => _showEditEmailDialog(user),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.lock_outline, color: AppTheme.primaryGreen),
+                      title: const Text('Change password'),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: _showChangePasswordDialog,
                     ),
                   ],
                 ),
@@ -108,26 +149,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: AppTheme.cardDark,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: ListTile(
                   leading: const Icon(
-                    Icons.currency_rupee,
+                    Icons.currency_exchange,
                     color: AppTheme.primaryGreen,
                   ),
-                  title: const Text(
+                  title: Text(
                     'Currency',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                   ),
                   subtitle: Text(
-                    _selectedCurrency,
-                    style: TextStyle(color: Colors.grey[400]),
+                    'BDT (৳)',
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                   ),
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.arrow_forward_ios,
                     size: 16,
-                    color: Colors.grey,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                   onTap: () => _showCurrencyPicker(),
                 ),
@@ -140,7 +181,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: AppTheme.cardDark,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: SwitchListTile(
@@ -148,13 +189,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     Icons.dark_mode_outlined,
                     color: AppTheme.primaryGreen,
                   ),
-                  title: const Text(
+                  title: Text(
                     'Dark Mode',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                   ),
                   subtitle: Text(
                     ref.watch(themeModeProvider) == ThemeMode.dark ? 'Enabled' : 'Disabled',
-                    style: TextStyle(color: Colors.grey[400]),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                   ),
                   value: ref.watch(themeModeProvider) == ThemeMode.dark,
                   onChanged: (value) {
@@ -173,7 +214,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: AppTheme.cardDark,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -183,13 +224,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Icons.notifications_outlined,
                         color: AppTheme.primaryGreen,
                       ),
-                      title: const Text(
+                      title: Text(
                         'Enable Notifications',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                       ),
                       subtitle: Text(
                         'Receive app notifications',
-                        style: TextStyle(color: Colors.grey[400]),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                       ),
                       value: _notificationsEnabled,
                       onChanged: (value) {
@@ -203,19 +244,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       },
                       activeColor: AppTheme.primaryGreen,
                     ),
-                    Divider(color: Colors.grey[800], height: 1),
+                    Divider(color: Theme.of(context).dividerColor, height: 1),
                     SwitchListTile(
                       secondary: const Icon(
                         Icons.event_outlined,
                         color: AppTheme.primaryGreen,
                       ),
-                      title: const Text(
+                      title: Text(
                         'Due Date Reminders',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                       ),
                       subtitle: Text(
                         'Get notified about upcoming due dates',
-                        style: TextStyle(color: Colors.grey[400]),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                       ),
                       value: _dueDateReminders && _notificationsEnabled,
                       onChanged: _notificationsEnabled
@@ -227,19 +268,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           : null,
                       activeColor: AppTheme.primaryGreen,
                     ),
-                    Divider(color: Colors.grey[800], height: 1),
+                    Divider(color: Theme.of(context).dividerColor, height: 1),
                     SwitchListTile(
                       secondary: const Icon(
                         Icons.handshake_outlined,
                         color: AppTheme.primaryGreen,
                       ),
-                      title: const Text(
+                      title: Text(
                         'Loan Reminders',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                       ),
                       subtitle: Text(
                         'Get notified about loan activities',
-                        style: TextStyle(color: Colors.grey[400]),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                       ),
                       value: _loanReminders && _notificationsEnabled,
                       onChanged: _notificationsEnabled
@@ -262,7 +303,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: AppTheme.cardDark,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -272,39 +313,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Icons.backup_outlined,
                         color: AppTheme.primaryGreen,
                       ),
-                      title: const Text(
+                      title: Text(
                         'Backup Data',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                       ),
                       subtitle: Text(
                         'Save your data to cloud',
-                        style: TextStyle(color: Colors.grey[400]),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                       ),
-                      trailing: const Icon(
+                      trailing: Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: Colors.grey,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
                       ),
                       onTap: () => _showBackupDialog(),
                     ),
-                    Divider(color: Colors.grey[800], height: 1),
+                    Divider(color: Theme.of(context).dividerColor, height: 1),
                     ListTile(
                       leading: const Icon(
                         Icons.restore_outlined,
                         color: AppTheme.primaryGreen,
                       ),
-                      title: const Text(
+                      title: Text(
                         'Restore Data',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                       ),
                       subtitle: Text(
                         'Restore from previous backup',
-                        style: TextStyle(color: Colors.grey[400]),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                       ),
-                      trailing: const Icon(
+                      trailing: Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: Colors.grey,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
                       ),
                       onTap: () => _showRestoreDialog(),
                     ),
@@ -319,7 +360,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: AppTheme.cardDark,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -329,35 +370,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Icons.info_outline,
                         color: AppTheme.primaryGreen,
                       ),
-                      title: const Text(
+                      title: Text(
                         'About',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                       ),
                       subtitle: Text(
                         'Version 1.0.0',
-                        style: TextStyle(color: Colors.grey[400]),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                       ),
-                      trailing: const Icon(
+                      trailing: Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: Colors.grey,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
                       ),
                       onTap: () => _showAboutDialog(),
                     ),
-                    Divider(color: Colors.grey[800], height: 1),
+                    Divider(color: Theme.of(context).dividerColor, height: 1),
                     ListTile(
                       leading: const Icon(
                         Icons.help_outline,
                         color: AppTheme.primaryGreen,
                       ),
-                      title: const Text(
+                      title: Text(
                         'Help & Support',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                       ),
-                      trailing: const Icon(
+                      trailing: Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: Colors.grey,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
                       ),
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -432,22 +473,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showCurrencyPicker() {
-    final currencies = ['INR', 'USD', 'EUR', 'GBP', 'JPY', 'AUD'];
+    final currencies = ['BDT'];
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.cardDark,
-        title: const Text(
+        title: Text(
           'Select Currency',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: currencies.map((currency) {
             return ListTile(
               title: Text(
-                currency,
-                style: const TextStyle(color: Colors.white),
+                'BDT (৳)',
+                style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
               ),
               trailing: _selectedCurrency == currency
                   ? const Icon(Icons.check, color: AppTheme.primaryGreen)
@@ -469,14 +509,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.cardDark,
-        title: const Text(
+        title: Text(
           'Backup Data',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
         ),
-        content: const Text(
+        content: Text(
           'This will backup all your accounts, transactions, contacts, and loans to Firebase Storage.\n\nBackup is automatic when connected to internet.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
         ),
         actions: [
           TextButton(
@@ -507,14 +546,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.cardDark,
-        title: const Text(
+        title: Text(
           'Restore Data',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
         ),
-        content: const Text(
+        content: Text(
           'This will restore your data from the latest backup.\n\nWarning: This will replace all current data.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
         ),
         actions: [
           TextButton(
@@ -545,14 +583,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.cardDark,
-        title: const Text(
+        title: Text(
           'CashFlowX',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
         ),
-        content: const Text(
+        content: Text(
           'Version 1.0.0\n\nA comprehensive loan and cash flow management app.\n\nDeveloped with Flutter and Firebase.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
         ),
         actions: [
           TextButton(
@@ -568,14 +605,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.cardDark,
-        title: const Text(
+        title: Text(
           'Sign Out',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to sign out?',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
         ),
         actions: [
           TextButton(
@@ -588,6 +624,226 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               backgroundColor: Colors.red[400],
             ),
             child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updateFirestoreUser(String uid, Map<String, dynamic> data) {
+    return _firestore.collection('users').doc(uid).update(data);
+  }
+
+  void _showEditProfileDialog(AppUser user) {
+    final nameController = TextEditingController(text: user.displayName ?? '');
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Edit Profile',
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: 'Display Name',
+                prefixIcon: Icon(Icons.person_outline),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newName = nameController.text.trim();
+              if (newName.isNotEmpty) {
+                try {
+                  final fbUser = _auth.currentUser;
+                  if (fbUser == null) return;
+
+                  await fbUser.updateDisplayName(newName);
+                  await _updateFirestoreUser(user.uid, {'displayName': newName});
+                  await fbUser.reload();
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Profile updated successfully'),
+                        backgroundColor: AppTheme.primaryGreen,
+                      ),
+                    );
+                    // Trigger rebuild
+                    setState(() {});
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to update profile: $e'),
+                        backgroundColor: AppTheme.errorRed,
+                      ),
+                    );
+                  }
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryGreen,
+            ),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditEmailDialog(AppUser user) {
+    final emailController = TextEditingController(text: user.email);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Change Email',
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+        ),
+        content: TextField(
+          controller: emailController,
+          decoration: const InputDecoration(
+            labelText: 'New email',
+            prefixIcon: Icon(Icons.email_outlined),
+          ),
+          keyboardType: TextInputType.emailAddress,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newEmail = emailController.text.trim();
+              if (newEmail.isEmpty) return;
+              try {
+                final fbUser = _auth.currentUser;
+                if (fbUser == null) return;
+                await fbUser.updateEmail(newEmail);
+                await _updateFirestoreUser(user.uid, {'email': newEmail});
+                await fbUser.reload();
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Email updated. You may need to re-verify.'),
+                      backgroundColor: AppTheme.primaryGreen,
+                    ),
+                  );
+                  setState(() {});
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to update email: $e'),
+                      backgroundColor: AppTheme.errorRed,
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showChangePasswordDialog() {
+    final passwordController = TextEditingController();
+    final confirmController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Change Password',
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: passwordController,
+              decoration: const InputDecoration(
+                labelText: 'New password',
+                prefixIcon: Icon(Icons.lock_outline),
+              ),
+              obscureText: true,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: confirmController,
+              decoration: const InputDecoration(
+                labelText: 'Confirm new password',
+                prefixIcon: Icon(Icons.lock_outline),
+              ),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final pass = passwordController.text.trim();
+              final confirm = confirmController.text.trim();
+              if (pass.isEmpty || pass != confirm) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Passwords do not match'),
+                    backgroundColor: AppTheme.errorRed,
+                  ),
+                );
+                return;
+              }
+              try {
+                final fbUser = _auth.currentUser;
+                if (fbUser == null) return;
+                await fbUser.updatePassword(pass);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Password updated successfully'),
+                      backgroundColor: AppTheme.primaryGreen,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to update password: $e'),
+                      backgroundColor: AppTheme.errorRed,
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+            child: const Text('Save'),
           ),
         ],
       ),

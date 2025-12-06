@@ -384,21 +384,40 @@ class LoanDetailSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           if (loan.net != 0)
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _settleLoan(context, ref),
-                icon: const Icon(Icons.check_circle),
-                label: const Text('Settle Loan'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryGreen,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _markAsPaid(context, ref),
+                    icon: const Icon(Icons.check),
+                    label: const Text('Mark as Paid'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _settleLoan(context, ref),
+                    icon: const Icon(Icons.payments),
+                    label: const Text('Settle & Pay'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
         ],
       ),
@@ -419,12 +438,12 @@ class LoanDetailSheet extends ConsumerWidget {
     );
   }
 
-  Future<void> _settleLoan(BuildContext context, WidgetRef ref) async {
+  Future<void> _markAsPaid(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Settle Loan'),
-        content: const Text('This will mark the loan as settled. Continue?'),
+        title: const Text('Mark as Paid'),
+        content: const Text('This will mark the loan as paid without creating a transaction. Continue?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -432,7 +451,38 @@ class LoanDetailSheet extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Settle'),
+            child: const Text('Mark Paid'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final controller = ref.read(loanControllerProvider.notifier);
+      await controller.markLoanAsPaid(accountId, loan.id);
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Loan marked as paid')),
+        );
+      }
+    }
+  }
+
+  Future<void> _settleLoan(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Settle & Pay'),
+        content: const Text('This will create a settlement transaction and mark the loan as paid. Continue?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Settle & Pay'),
           ),
         ],
       ),
@@ -444,7 +494,7 @@ class LoanDetailSheet extends ConsumerWidget {
       if (context.mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Loan settled')),
+          const SnackBar(content: Text('Loan settled and transaction created')),
         );
       }
     }
@@ -514,7 +564,7 @@ class _EventCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      color: AppTheme.surfaceDark,
+      color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(

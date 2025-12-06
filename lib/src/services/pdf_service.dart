@@ -35,7 +35,8 @@ class PdfService {
     }
 
     final balance = totalIncome - totalExpense;
-    final currencySymbol = AppTheme.getCurrencySymbol(currency);
+    // Show plain amounts (no currency symbol) per request
+    const currencySymbol = '';
 
     // Add pages
     pdf.addPage(
@@ -119,38 +120,47 @@ class PdfService {
     double balance,
     String currencySymbol,
   ) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(
-          'Summary',
-          style: pw.TextStyle(
-            fontSize: 20,
-            fontWeight: pw.FontWeight.bold,
+    String fmt(double v) => NumberFormat('#,##0.00').format(v);
+
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(16),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.grey100,
+        borderRadius: pw.BorderRadius.circular(12),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'Summary',
+            style: pw.TextStyle(
+              fontSize: 20,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
-        ),
-        pw.SizedBox(height: 12),
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          children: [
-            _buildSummaryCard(
-              'Total Income',
-              '$currencySymbol${totalIncome.toStringAsFixed(2)}',
-              PdfColors.green,
-            ),
-            _buildSummaryCard(
-              'Total Expense',
-              '$currencySymbol${totalExpense.toStringAsFixed(2)}',
-              PdfColors.red,
-            ),
-            _buildSummaryCard(
-              'Net Balance',
-              '$currencySymbol${balance.toStringAsFixed(2)}',
-              balance >= 0 ? PdfColors.blue : PdfColors.orange,
-            ),
-          ],
-        ),
-      ],
+          pw.SizedBox(height: 12),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              _buildSummaryCard(
+                'Total Income',
+                '$currencySymbol${fmt(totalIncome)}'.trim(),
+                PdfColors.green600,
+              ),
+              _buildSummaryCard(
+                'Total Expense',
+                '$currencySymbol${fmt(totalExpense)}'.trim(),
+                PdfColors.red600,
+              ),
+              _buildSummaryCard(
+                'Net Balance',
+                '$currencySymbol${fmt(balance)}'.trim(),
+                balance >= 0 ? PdfColors.blue600 : PdfColors.orange600,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -160,22 +170,25 @@ class PdfService {
     PdfColor color,
   ) {
     return pw.Container(
+      width: 160,
       padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: color, width: 2),
-        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+        color: PdfColor.fromHex('#f7f8fa'),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
+        border: pw.Border.all(color: color, width: 1.2),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(
             title,
-            style: const pw.TextStyle(
+            style: pw.TextStyle(
               fontSize: 12,
               color: PdfColors.grey700,
+              fontWeight: pw.FontWeight.bold,
             ),
           ),
-          pw.SizedBox(height: 4),
+          pw.SizedBox(height: 6),
           pw.Text(
             value,
             style: pw.TextStyle(
@@ -239,10 +252,10 @@ class PdfService {
                 children: [
                   _buildTableCell(account.title),
                   _buildTableCell(account.currency),
-                  _buildTableCell('$currencySymbol${totalIn.toStringAsFixed(2)}'),
-                  _buildTableCell('$currencySymbol${totalOut.toStringAsFixed(2)}'),
+                  _buildTableCell('${totalIn.toStringAsFixed(2)}'),
+                  _buildTableCell('${totalOut.toStringAsFixed(2)}'),
                   _buildTableCell(
-                    '$currencySymbol${balance.toStringAsFixed(2)}',
+                    '${balance.toStringAsFixed(2)}',
                     color: balance >= 0 ? PdfColors.green : PdfColors.red,
                   ),
                 ],
@@ -323,7 +336,7 @@ class PdfService {
                               : 'Cash Out',
                         ),
                         _buildTableCell(
-                          '$currencySymbol${transaction.amount.toStringAsFixed(2)}',
+                          transaction.amount.toStringAsFixed(2),
                           color: transaction.type == TransactionType.cashIn
                               ? PdfColors.green
                               : PdfColors.red,

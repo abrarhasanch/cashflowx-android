@@ -38,20 +38,8 @@ class AppTheme {
 
   // Currency symbols
   static String getCurrencySymbol(String currency) {
-    switch (currency.toUpperCase()) {
-      case 'BDT':
-        return '৳';
-      case 'USD':
-        return '\$';
-      case 'EUR':
-        return '€';
-      case 'GBP':
-        return '£';
-      case 'INR':
-        return '₹';
-      default:
-        return currency;
-    }
+    // Only BDT is supported
+    return '৳';
   }
 
   static ThemeData get dark {
@@ -230,9 +218,12 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         color: cardLight,
-        elevation: 0,
+        elevation: 2,
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shadowColor: Colors.black.withOpacity(0.08),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

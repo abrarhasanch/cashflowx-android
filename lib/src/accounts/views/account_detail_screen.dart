@@ -82,79 +82,130 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> with 
 
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          appBar: AppBar(
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.go('/accounts'),
-            ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          body: SafeArea(
+            child: Column(
               children: [
-                Text(
-                  account.title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18,
+                // Hero header
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(16, 18, 16, 14),
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.primaryGradient,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryGreen.withAlpha(60),
+                        blurRadius: 26,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              _CircleIconButton(
+                                icon: Icons.arrow_back,
+                                onTap: () => context.go('/accounts'),
+                              ),
+                              const SizedBox(width: 10),
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: MediaQuery.of(context).size.width * 0.5,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      account.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    if (account.description != null && account.description!.isNotEmpty)
+                                      Text(
+                                        account.description!,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: Colors.white.withAlpha(210),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              _CircleIconButton(
+                                icon: Icons.edit_outlined,
+                                onTap: () => _showEditAccountSheet(account),
+                              ),
+                              const SizedBox(width: 10),
+                              _CircleIconButton(
+                                icon: Icons.picture_as_pdf_outlined,
+                                onTap: () => _showExportDialog(account),
+                              ),
+                              const SizedBox(width: 10),
+                              _CircleIconButton(
+                                icon: Icons.delete_outline,
+                                onTap: () => _confirmDeleteAccount(account),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(22),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white.withAlpha(40)),
+                        ),
+                        child: TabBar(
+                          controller: _tabController,
+                          indicator: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          labelColor: AppTheme.primaryGreen,
+                          unselectedLabelColor: Colors.white.withAlpha(200),
+                          labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                          tabs: const [
+                            Tab(text: 'Summary'),
+                            Tab(text: 'Cash Entries'),
+                            Tab(text: 'Members'),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                if (account.description != null && account.description!.isNotEmpty)
-                  Text(
-                    account.description!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.textSecondary,
-                    ),
+
+                // Content
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      SummaryTab(accountId: widget.accountId, currencySymbol: currencySymbol),
+                      CashEntriesTab(accountId: widget.accountId, currencySymbol: currencySymbol),
+                      MembersTab(account: account),
+                    ],
                   ),
+                ),
               ],
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.edit_outlined),
-                onPressed: () => _showEditAccountSheet(account),
-                tooltip: 'Edit Account',
-              ),
-              IconButton(
-                icon: const Icon(Icons.picture_as_pdf_outlined),
-                onPressed: () => _showExportDialog(account),
-                tooltip: 'Export PDF',
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline),
-                onPressed: () => _confirmDeleteAccount(account),
-                tooltip: 'Delete Account',
-              ),
-            ],
-            bottom: TabBar(
-              controller: _tabController,
-              indicatorColor: AppTheme.primaryGreen,
-              indicatorWeight: 3,
-              labelColor: Colors.white,
-              unselectedLabelColor: AppTheme.textMutedDark,
-              labelStyle: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
-              isScrollable: false,
-              tabs: const [
-                Tab(text: 'Summary'),
-                Tab(text: 'Cash Entries'),
-                Tab(text: 'Members'),
-              ],
-            ),
-          ),
-          body: TabBarView(
-            controller: _tabController,
-            children: [
-              SummaryTab(accountId: widget.accountId, currencySymbol: currencySymbol),
-              CashEntriesTab(accountId: widget.accountId, currencySymbol: currencySymbol),
-              MembersTab(account: account),
-            ],
           ),
         );
       },
@@ -219,7 +270,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> with 
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: selectedCurrency,
+                  initialValue: selectedCurrency,
                   decoration: const InputDecoration(
                     labelText: 'Currency',
                     prefixIcon: Icon(Icons.currency_exchange),
@@ -432,5 +483,28 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> with 
         context.go('/accounts');
       }
     }
+  }
+}
+
+class _CircleIconButton extends StatelessWidget {
+  const _CircleIconButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(26),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: Colors.white),
+      ),
+    );
   }
 }

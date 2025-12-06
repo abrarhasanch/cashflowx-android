@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/transaction.dart';
 import '../services/firestore_service.dart';
@@ -35,7 +36,7 @@ class TransactionController extends StateNotifier<AsyncValue<void>> {
   TransactionController(this._service, this._auth) : super(const AsyncData(null));
 
   final FirestoreService _service;
-  final _auth;
+  final FirebaseAuth _auth;
 
   Future<void> addTransaction(String accountId, AccountTransaction transaction) async {
     state = const AsyncLoading();

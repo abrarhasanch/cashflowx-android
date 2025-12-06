@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/transaction.dart';
 import '../../providers/account_providers.dart';
 import '../../providers/transaction_providers.dart';
-import '../../auth/controllers/auth_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_drawer.dart';
 import '../../services/pdf_service.dart';
@@ -20,6 +17,7 @@ class ReportsScreen extends ConsumerStatefulWidget {
 }
 
 class _ReportsScreenState extends ConsumerState<ReportsScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
   DateTime _endDate = DateTime.now();
   String _selectedPeriod = 'month'; // month, custom
@@ -29,21 +27,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final accountsAsync = ref.watch(accountsProvider);
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       drawer: const AppDrawer(),
-      appBar: AppBar(
-        title: const Text('Global Reports'),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf_outlined),
-            onPressed: () {
-              _showExportDialog();
-            },
-            tooltip: 'Export PDF',
-          ),
-        ],
-      ),
       body: accountsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
@@ -76,29 +62,35 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             );
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+          return SafeArea(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Period selector
-                _buildPeriodSelector(),
-                const SizedBox(height: 24),
-
-                // Summary cards
-                _buildSummaryCards(accounts),
-                const SizedBox(height: 24),
-
-                // Income vs Expense chart
-                _buildIncomeExpenseChart(accounts),
-                const SizedBox(height: 24),
-
-                // Accounts breakdown
-                _buildAccountsBreakdown(accounts),
-                const SizedBox(height: 24),
-
-                // Transaction category breakdown
-                _buildCategoryBreakdown(accounts),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                  child: _HeaderCard(
+                    onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+                    onExport: _showExportDialog,
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildPeriodSelector(),
+                        const SizedBox(height: 24),
+                        _buildSummaryCards(accounts),
+                        const SizedBox(height: 24),
+                        _buildIncomeExpenseChart(accounts),
+                        const SizedBox(height: 24),
+                        _buildAccountsBreakdown(accounts),
+                        const SizedBox(height: 24),
+                        _buildCategoryBreakdown(accounts),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           );
@@ -108,21 +100,31 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildPeriodSelector() {
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final cardColor = Theme.of(context).cardColor;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark,
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Report Period',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: textColor,
             ),
           ),
           const SizedBox(height: 12),
@@ -191,6 +193,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildSummaryCards(List<dynamic> accounts) {
+    final cardColor = Theme.of(context).cardColor;
+    final textColor = Theme.of(context).textTheme.bodySmall?.color;
+
     double totalIncome = 0;
     double totalExpense = 0;
 
@@ -209,6 +214,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             value: totalIncome,
             icon: Icons.arrow_downward,
             color: AppTheme.primaryGreen,
+            cardColor: cardColor,
+            textColor: textColor,
           ),
         ),
         const SizedBox(width: 12),
@@ -218,6 +225,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             value: totalExpense,
             icon: Icons.arrow_upward,
             color: Colors.red[400]!,
+            cardColor: cardColor,
+            textColor: textColor,
           ),
         ),
         const SizedBox(width: 12),
@@ -227,6 +236,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             value: balance,
             icon: Icons.account_balance_wallet,
             color: balance >= 0 ? AppTheme.primaryGreen : Colors.red[400]!,
+            cardColor: cardColor,
+            textColor: textColor,
           ),
         ),
       ],
@@ -234,21 +245,32 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildIncomeExpenseChart(List<dynamic> accounts) {
+    final cardColor = Theme.of(context).cardColor;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final mutedText = Theme.of(context).textTheme.bodyMedium?.color;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark,
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Income vs Expense Trend',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: textColor,
             ),
           ),
           const SizedBox(height: 20),
@@ -257,7 +279,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             child: Center(
               child: Text(
                 'Chart will be implemented with transaction data',
-                style: TextStyle(color: Colors.grey[600]),
+                style: TextStyle(color: mutedText),
               ),
             ),
           ),
@@ -267,11 +289,22 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildAccountsBreakdown(List<dynamic> accounts) {
+    final cardColor = Theme.of(context).cardColor;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final subText = Theme.of(context).textTheme.bodyMedium?.color;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark,
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,19 +312,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Accounts Summary',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: textColor,
                 ),
               ),
               Text(
                 '${accounts.length} accounts',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[400],
+                  color: subText,
                 ),
               ),
             ],
@@ -304,7 +337,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: AppTheme.primaryGreen.withOpacity(0.2),
+                    backgroundColor: AppTheme.primaryGreen.withAlpha(51),
                     child: Text(
                       account.title[0].toUpperCase(),
                       style: const TextStyle(
@@ -320,10 +353,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       children: [
                         Text(
                           account.title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
-                            color: Colors.white,
+                            color: textColor,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -331,7 +364,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           'In: ৳${account.totalIn.toStringAsFixed(2)} | Out: ৳${account.totalOut.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey[500],
+                            color: subText,
                           ),
                         ),
                       ],
@@ -355,28 +388,39 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildCategoryBreakdown(List<dynamic> accounts) {
+    final cardColor = Theme.of(context).cardColor;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final subText = Theme.of(context).textTheme.bodyMedium?.color;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark,
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Category Breakdown',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: textColor,
             ),
           ),
           const SizedBox(height: 20),
           Center(
             child: Text(
               'Category analysis coming soon',
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: subText),
             ),
           ),
         ],
@@ -449,7 +493,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
       // Get data
       final accounts = await ref.read(accountsProvider.future);
-      final user = ref.read(authStateChangesProvider).value;
       
       // Get currency from user's account or use default
       final currency = accounts.isNotEmpty ? accounts.first.currency : 'INR';
@@ -508,26 +551,119 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 }
 
+class _HeaderCard extends StatelessWidget {
+  const _HeaderCard({required this.onMenuTap, required this.onExport});
+
+  final VoidCallback onMenuTap;
+  final VoidCallback onExport;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: AppTheme.primaryGradient,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryGreen.withAlpha(70),
+            blurRadius: 26,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          _CircleIconButton(icon: Icons.menu, onTap: onMenuTap),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Global Reports',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Insights across accounts and periods',
+                  style: TextStyle(
+                    color: Colors.white.withAlpha(210),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _CircleIconButton(
+            icon: Icons.picture_as_pdf_outlined,
+            onTap: onExport,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CircleIconButton extends StatelessWidget {
+  const _CircleIconButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(30),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Icon(icon, color: Colors.white, size: 20),
+      ),
+    );
+  }
+}
+
 class _MetricCard extends StatelessWidget {
   const _MetricCard({
     required this.title,
     required this.value,
     required this.icon,
     required this.color,
+    required this.cardColor,
+    required this.textColor,
   });
 
   final String title;
   final double value;
   final IconData icon;
   final Color color;
+  final Color cardColor;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark,
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -536,10 +672,7 @@ class _MetricCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[400],
-            ),
+            style: TextStyle(fontSize: 12, color: textColor),
           ),
           const SizedBox(height: 4),
           Text(
@@ -569,6 +702,11 @@ class _DatePickerButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cardColor = Theme.of(context).cardColor;
+    final borderColor = Theme.of(context).dividerColor;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final subText = Theme.of(context).textTheme.bodyMedium?.color;
+
     return InkWell(
       onTap: () async {
         final picked = await showDatePicker(
@@ -595,26 +733,23 @@ class _DatePickerButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppTheme.backgroundDark,
+          color: cardColor,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[700]!),
+          border: Border.all(color: borderColor),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[500],
-              ),
+              style: TextStyle(fontSize: 12, color: subText),
             ),
             const SizedBox(height: 4),
             Text(
               DateFormat('MMM dd, yyyy').format(date),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Colors.white,
+                color: textColor,
                 fontWeight: FontWeight.w500,
               ),
             ),

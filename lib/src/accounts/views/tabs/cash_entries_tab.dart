@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -35,7 +37,7 @@ class _CashEntriesTabState extends ConsumerState<CashEntriesTab> {
               // Filter chips
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
                     _FilterChip(
@@ -134,11 +136,13 @@ class _CashEntriesTabState extends ConsumerState<CashEntriesTab> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.successGreen,
+                    backgroundColor: AppTheme.primaryTeal,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(18),
                     ),
+                    elevation: 8,
+                    shadowColor: AppTheme.primaryTeal.withAlpha(89),
                   ),
                   icon: const Icon(Icons.arrow_downward),
                   label: const Text('Cash In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -166,8 +170,10 @@ class _CashEntriesTabState extends ConsumerState<CashEntriesTab> {
                     backgroundColor: AppTheme.errorRed,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(18),
                     ),
+                    elevation: 8,
+                    shadowColor: AppTheme.errorRed.withAlpha(89),
                   ),
                   icon: const Icon(Icons.arrow_upward),
                   label: const Text('Cash Out', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -217,11 +223,16 @@ class _FilterChip extends StatelessWidget {
       label: Text(label),
       selected: selected,
       onSelected: (_) => onSelected(),
-      backgroundColor: AppTheme.cardDark,
-      selectedColor: AppTheme.primaryGreen.withOpacity(0.2),
-      checkmarkColor: AppTheme.primaryGreen,
+      backgroundColor: AppTheme.surfaceDarkElevated,
+      selectedColor: AppTheme.primaryTeal.withAlpha(46),
+      checkmarkColor: AppTheme.primaryTeal,
       labelStyle: TextStyle(
-        color: selected ? AppTheme.primaryGreen : AppTheme.textSecondary,
+        color: selected ? AppTheme.primaryTeal : AppTheme.textSecondary,
+        fontWeight: FontWeight.w600,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: selected ? AppTheme.primaryTeal.withAlpha(178) : AppTheme.borderDark.withAlpha(153)),
       ),
     );
   }
@@ -246,29 +257,46 @@ class _TransactionCard extends ConsumerWidget {
                      transaction.dueDate!.isBefore(DateTime.now());
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: AppTheme.cardDark,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      color: Colors.transparent,
+      elevation: 0,
       child: InkWell(
+        borderRadius: BorderRadius.circular(18),
         onTap: () => _showTransactionSheet(context, ref, transaction),
-        child: Padding(
+        child: Container(
           padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: AppTheme.glassGradient,
+            color: AppTheme.surfaceDarkElevated.withAlpha(235),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(46),
+                blurRadius: 16,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isCashIn 
-                          ? Colors.green.withOpacity(0.2)
-                          : Colors.red.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
+                      gradient: isCashIn ? AppTheme.primaryGradient : const LinearGradient(
+                        colors: [Color(0xFFEF4444), Color(0xFFFF7F7F)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       isCashIn ? Icons.arrow_downward : Icons.arrow_upward,
-                      color: isCashIn ? Colors.green : Colors.red,
-                      size: 20,
+                      color: Colors.white,
+                      size: 18,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -280,7 +308,7 @@ class _TransactionCard extends ConsumerWidget {
                           isCashIn ? 'Cash In (I Took)' : 'Cash Out (They Took)',
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         if (transaction.remark != null)
@@ -298,8 +326,8 @@ class _TransactionCard extends ConsumerWidget {
                     '$currencySymbol${transaction.amount.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isCashIn ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.w800,
+                      color: isCashIn ? AppTheme.primaryTeal : AppTheme.errorRed,
                     ),
                   ),
                 ],
@@ -320,7 +348,7 @@ class _TransactionCard extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Created: ${DateFormat('MMM dd, yyyy').format(transaction.createdAt)}',
+                        'Created: ${DateFormat('MMM dd, yyyy – HH:mm').format(transaction.createdAt)}',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppTheme.textSecondary,
@@ -352,10 +380,10 @@ class _TransactionCard extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: transaction.isPaid
-                                ? Colors.green.withOpacity(0.2)
+                                ? AppTheme.successGreen.withAlpha(46)
                                 : isOverdue
-                                    ? Colors.red.withOpacity(0.2)
-                                    : Colors.orange.withOpacity(0.2),
+                                    ? AppTheme.errorRed.withAlpha(46)
+                                    : AppTheme.warningOrange.withAlpha(51),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -368,10 +396,10 @@ class _TransactionCard extends ConsumerWidget {
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: transaction.isPaid
-                                  ? Colors.green
+                                  ? AppTheme.successGreen
                                   : isOverdue
-                                      ? Colors.red
-                                      : Colors.orange,
+                                      ? AppTheme.errorRed
+                                      : AppTheme.warningOrange,
                             ),
                           ),
                         ),
@@ -420,8 +448,10 @@ class _TransactionCard extends ConsumerWidget {
                       icon: const Icon(Icons.check_circle_outline, size: 18),
                       label: const Text('Mark as Paid'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.green,
-                        side: const BorderSide(color: Colors.green),
+                        foregroundColor: AppTheme.primaryTeal,
+                        side: BorderSide(color: AppTheme.primaryTeal),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
                   ),
@@ -468,6 +498,19 @@ class _TransactionDetailSheet extends ConsumerWidget {
       ),
       child: Container(
         padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: AppTheme.glassGradient,
+          color: AppTheme.surfaceDarkElevated.withAlpha(242),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: AppTheme.borderDark.withAlpha(128)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(51),
+              blurRadius: 20,
+              offset: const Offset(0, -6),
+            ),
+          ],
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -477,15 +520,19 @@ class _TransactionDetailSheet extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isCashIn 
-                        ? Colors.green.withOpacity(0.2)
-                        : Colors.red.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
+                    gradient: isCashIn
+                        ? AppTheme.primaryGradient
+                        : const LinearGradient(
+                            colors: [Color(0xFFEF4444), Color(0xFFFF7F7F)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(
                     isCashIn ? Icons.arrow_downward : Icons.arrow_upward,
-                    color: isCashIn ? Colors.green : Colors.red,
-                    size: 24,
+                    color: Colors.white,
+                    size: 22,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -497,15 +544,15 @@ class _TransactionDetailSheet extends ConsumerWidget {
                         isCashIn ? 'Cash In' : 'Cash Out',
                         style: const TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       Text(
                         '$currencySymbol${transaction.amount.toStringAsFixed(2)}',
                         style: TextStyle(
                           fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: isCashIn ? Colors.green : Colors.red,
+                          fontWeight: FontWeight.w800,
+                          color: isCashIn ? AppTheme.primaryTeal : AppTheme.errorRed,
                         ),
                       ),
                     ],
@@ -513,7 +560,7 @@ class _TransactionDetailSheet extends ConsumerWidget {
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
+                  icon: Icon(Icons.close, color: AppTheme.textSecondary),
                 ),
               ],
             ),
@@ -521,19 +568,29 @@ class _TransactionDetailSheet extends ConsumerWidget {
             const SizedBox(height: 24),
             
             if (transaction.remark != null) ...[
-              const Text(
+              Text(
                 'Remark',
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                transaction.remark!,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppTheme.textSecondary,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceDarkElevated.withAlpha(178),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.borderDark.withAlpha(102)),
+                ),
+                child: Text(
+                  transaction.remark!,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -598,9 +655,12 @@ class _TransactionDetailSheet extends ConsumerWidget {
                     icon: const Icon(Icons.check_circle),
                     label: const Text('Mark as Paid'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: AppTheme.primaryTeal,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shadowColor: AppTheme.primaryTeal.withAlpha(89),
+                      elevation: 6,
                     ),
                   ),
                 ),
@@ -616,6 +676,12 @@ class _TransactionDetailSheet extends ConsumerWidget {
                     },
                     icon: const Icon(Icons.edit),
                     label: const Text('Edit'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.textPrimary,
+                      side: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -634,7 +700,7 @@ class _TransactionDetailSheet extends ConsumerWidget {
                             ),
                             TextButton(
                               onPressed: () => Navigator.pop(context, true),
-                              style: TextButton.styleFrom(foregroundColor: Colors.red),
+                              style: TextButton.styleFrom(foregroundColor: AppTheme.errorRed),
                               child: const Text('Delete'),
                             ),
                           ],
@@ -650,8 +716,10 @@ class _TransactionDetailSheet extends ConsumerWidget {
                     icon: const Icon(Icons.delete),
                     label: const Text('Delete'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
+                      foregroundColor: AppTheme.errorRed,
+                      side: BorderSide(color: AppTheme.errorRed.withAlpha(204)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
@@ -786,6 +854,19 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
       child: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: AppTheme.glassGradient,
+            color: AppTheme.surfaceDarkElevated.withAlpha(242),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: AppTheme.borderDark.withAlpha(128)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(46),
+                blurRadius: 20,
+                offset: const Offset(0, -8),
+              ),
+            ],
+          ),
           child: Form(
             key: _formKey,
             child: Column(
@@ -796,7 +877,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   isEditing ? 'Edit Transaction' : 'Add Cash Entry',
                   style: const TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -816,7 +897,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       child: _TypeButton(
                         label: 'Cash In\n(I Took)',
                         icon: Icons.arrow_downward,
-                        color: Colors.green,
+                        color: AppTheme.primaryTeal,
+                        gradient: AppTheme.primaryGradient,
                         selected: _type == TransactionType.cashIn,
                         onTap: () => setState(() => _type = TransactionType.cashIn),
                       ),
@@ -826,7 +908,12 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       child: _TypeButton(
                         label: 'Cash Out\n(They Took)',
                         icon: Icons.arrow_upward,
-                        color: Colors.red,
+                        color: AppTheme.errorRed,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFEF4444), Color(0xFFFF7F7F)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                         selected: _type == TransactionType.cashOut,
                         onTap: () => setState(() => _type = TransactionType.cashOut),
                       ),
@@ -843,8 +930,18 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   decoration: InputDecoration(
                     labelText: 'Amount',
                     prefixText: '${widget.currencySymbol} ',
+                    filled: true,
+                    fillColor: AppTheme.surfaceDarkElevated,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.primaryTeal),
                     ),
                   ),
                   validator: (value) {
@@ -865,8 +962,18 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   controller: _remarkController,
                   decoration: InputDecoration(
                     labelText: 'Remark (Optional)',
+                    filled: true,
+                    fillColor: AppTheme.surfaceDarkElevated,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.primaryTeal),
                     ),
                   ),
                   maxLines: 2,
@@ -882,12 +989,15 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       firstDate: DateTime(2000),
                       lastDate: DateTime(2100),
                     );
+                    if (!mounted) return;
                     if (pickedDate == null) return;
 
                     final pickedTime = await showTimePicker(
                       context: context,
                       initialTime: TimeOfDay.fromDateTime(_createdAt),
                     );
+
+                    if (!mounted) return;
 
                     final time = pickedTime ?? TimeOfDay.fromDateTime(_createdAt);
                     setState(() {
@@ -903,8 +1013,9 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      border: Border.all(color: AppTheme.textSecondary.withOpacity(0.3)),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppTheme.surfaceDarkElevated,
+                      border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: Row(
                       children: [
@@ -937,6 +1048,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     });
                   },
                   contentPadding: EdgeInsets.zero,
+                  activeThumbColor: AppTheme.primaryTeal,
                 ),
                 
                 if (_hasDueDate) ...[
@@ -956,8 +1068,9 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppTheme.textSecondary.withOpacity(0.3)),
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppTheme.surfaceDarkElevated,
+                        border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: Row(
                         children: [
@@ -985,8 +1098,18 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   controller: _categoryController,
                   decoration: InputDecoration(
                     labelText: 'Category (Optional)',
+                    filled: true,
+                    fillColor: AppTheme.surfaceDarkElevated,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.primaryTeal),
                     ),
                   ),
                 ),
@@ -998,8 +1121,18 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   controller: _paymentModeController,
                   decoration: InputDecoration(
                     labelText: 'Payment Mode (Optional)',
+                    filled: true,
+                    fillColor: AppTheme.surfaceDarkElevated,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.primaryTeal),
                     ),
                   ),
                 ),
@@ -1012,12 +1145,14 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   child: ElevatedButton(
                     onPressed: _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryGreen,
+                      backgroundColor: AppTheme.primaryTeal,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
+                      elevation: 6,
+                      shadowColor: AppTheme.primaryTeal.withAlpha(76),
                     ),
                     child: Text(isEditing ? 'Update Transaction' : 'Add Transaction'),
                   ),
@@ -1079,6 +1214,7 @@ class _TypeButton extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.color,
+    this.gradient,
     required this.selected,
     required this.onTap,
   });
@@ -1086,30 +1222,42 @@ class _TypeButton extends StatelessWidget {
   final String label;
   final IconData icon;
   final Color color;
+  final LinearGradient? gradient;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final bool showGradient = selected && gradient != null;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.2) : AppTheme.cardDark,
+          gradient: showGradient ? gradient : null,
+          color: showGradient ? null : (selected ? color.withAlpha(31) : AppTheme.surfaceDarkElevated),
           border: Border.all(
-            color: selected ? color : AppTheme.textSecondary.withOpacity(0.3),
+            color: selected ? color : AppTheme.borderDark.withAlpha(153),
             width: selected ? 2 : 1,
           ),
-          borderRadius: BorderRadius.circular(12),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: color.withAlpha(64),
+                    blurRadius: 14,
+                    offset: const Offset(0, 10),
+                  ),
+                ]
+              : [],
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
           children: [
             Icon(
               icon,
-              color: selected ? color : AppTheme.textSecondary,
-              size: 24,
+              color: selected ? Colors.white : AppTheme.textSecondary,
+              size: 22,
             ),
             const SizedBox(height: 8),
             Text(
@@ -1117,8 +1265,8 @@ class _TypeButton extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                color: selected ? color : AppTheme.textSecondary,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: selected ? Colors.white : AppTheme.textSecondary,
               ),
             ),
           ],

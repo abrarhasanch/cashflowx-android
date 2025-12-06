@@ -2,38 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Brand colors - matching web app
-  static const Color primaryGreen = Color(0xFF10B981); // Emerald green
-  static const Color primaryDark = Color(0xFF0F172A);  // Dark navy background
-  static const Color surfaceDark = Color(0xFF1E293B);  // Card/surface color
-  static const Color surfaceDarkElevated = Color(0xFF334155); // Elevated surface
+  // Fresh palette tuned for contrast and modern feel
+  static const Color primaryGreen = Color(0xFF22C55E);
+  static const Color primaryTeal = Color(0xFF0EA5E9);
+  static const Color primaryDark = Color(0xFF0B1220);
+  static const Color surfaceDark = Color(0xFF111827);
+  static const Color surfaceDarkElevated = Color(0xFF1F2937);
   static const Color accentPurple = Color(0xFF8B5CF6);
   static const Color accentPink = Color(0xFFEC4899);
-  static const Color successGreen = Color(0xFF10B981);
+  static const Color successGreen = Color(0xFF22C55E);
   static const Color warningOrange = Color(0xFFF59E0B);
   static const Color errorRed = Color(0xFFEF4444);
   static const Color textPrimary = Color(0xFFF8FAFC);
-  static const Color textSecondary = Color(0xFF94A3B8);
-  static const Color borderColor = Color(0xFF334155);
+  static const Color textSecondary = Color(0xFF9CA3AF);
+  static const Color borderColor = Color(0xFF1F2937);
 
   // Alias names for consistency across screens
-  static const Color backgroundDark = Color(0xFF0D1117);
-  static const Color cardDark = Color(0xFF161B22);
-  static const Color borderDark = Color(0xFF30363D);
-  static const Color textMutedDark = Color(0xFF8B949E);
+  static const Color backgroundDark = Color(0xFF0A0F1A);
+  static const Color cardDark = surfaceDark;
+  static const Color borderDark = borderColor;
+  static const Color textMutedDark = Color(0xFF6B7280);
 
   // Light theme colors
-  static const Color backgroundLight = Color(0xFFF8FAFC);
+  static const Color backgroundLight = Color(0xFFF6F8FB);
   static const Color cardLight = Color(0xFFFFFFFF);
-  static const Color borderLight = Color(0xFFE2E8F0);
+  static const Color borderLight = Color(0xFFE5E7EB);
   static const Color textPrimaryLight = Color(0xFF0F172A);
-  static const Color textSecondaryLight = Color(0xFF64748B);
+  static const Color textSecondaryLight = Color(0xFF6B7280);
 
-  // Gradient
+  // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
+    colors: [Color(0xFF0EA5E9), Color(0xFF22C55E)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+  static const LinearGradient glassGradient = LinearGradient(
+    colors: [Color(0x33FFFFFF), Color(0x11FFFFFF)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
   );
 
   // Currency symbols
@@ -72,7 +78,7 @@ class AppTheme {
 
     return base.copyWith(
       textTheme: textTheme,
-      scaffoldBackgroundColor: primaryDark,
+      scaffoldBackgroundColor: backgroundDark,
       appBarTheme: AppBarTheme(
         backgroundColor: primaryDark,
         elevation: 0,
@@ -85,7 +91,7 @@ class AppTheme {
         color: surfaceDark,
         elevation: 0,
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -114,21 +120,21 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: surfaceDark,
+        fillColor: surfaceDarkElevated,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: borderColor),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: borderColor),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: primaryGreen, width: 2),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: primaryTeal, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: errorRed),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -138,16 +144,16 @@ class AppTheme {
       ),
       chipTheme: base.chipTheme.copyWith(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        selectedColor: primaryGreen.withOpacity(0.2),
+        selectedColor: primaryGreen.withAlpha(51),
         backgroundColor: surfaceDark,
         labelStyle: textTheme.labelMedium,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         side: const BorderSide(color: borderColor),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: surfaceDark,
+        backgroundColor: surfaceDarkElevated,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -155,8 +161,8 @@ class AppTheme {
         thickness: 1,
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: surfaceDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: surfaceDarkElevated,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: surfaceDarkElevated,
@@ -218,11 +224,11 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         color: cardLight,
-        elevation: 2,
+        elevation: 4,
         margin: EdgeInsets.zero,
-        shadowColor: Colors.black.withOpacity(0.08),
+        shadowColor: Colors.black.withAlpha(20),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -287,20 +293,20 @@ class AppTheme {
 
   // Summary card decorations
   static BoxDecoration get cashInCard => BoxDecoration(
-        color: successGreen.withOpacity(0.1),
+      color: successGreen.withAlpha(26),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: successGreen.withOpacity(0.3)),
+      border: Border.all(color: successGreen.withAlpha(77)),
       );
 
   static BoxDecoration get cashOutCard => BoxDecoration(
-        color: errorRed.withOpacity(0.1),
+      color: errorRed.withAlpha(26),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: errorRed.withOpacity(0.3)),
+      border: Border.all(color: errorRed.withAlpha(77)),
       );
 
   static BoxDecoration get netBalanceCard => BoxDecoration(
-        color: accentPurple.withOpacity(0.1),
+      color: accentPurple.withAlpha(26),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: accentPurple.withOpacity(0.3)),
+      border: Border.all(color: accentPurple.withAlpha(77)),
       );
 }

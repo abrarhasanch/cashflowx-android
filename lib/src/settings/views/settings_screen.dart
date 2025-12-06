@@ -17,7 +17,92 @@ class SettingsScreen extends ConsumerStatefulWidget {
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
+class _HeaderCard extends StatelessWidget {
+  const _HeaderCard({required this.onMenuTap});
+
+  final VoidCallback onMenuTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: AppTheme.primaryGradient,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryGreen.withAlpha(70),
+            blurRadius: 26,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _CircleIconButton(icon: Icons.menu, onTap: onMenuTap),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Settings',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Profile, preferences, notifications',
+                  style: TextStyle(
+                    color: Colors.white.withAlpha(210),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _CircleIconButton(
+            icon: Icons.notifications_outlined,
+            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Notification settings coming soon')), // simple placeholder
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CircleIconButton extends StatelessWidget {
+  const _CircleIconButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(30),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Icon(icon, color: Colors.white, size: 20),
+      ),
+    );
+  }
+}
+
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -31,12 +116,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final userAsync = ref.watch(authStateChangesProvider);
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       drawer: const AppDrawer(),
-      appBar: AppBar(
-        title: const Text('Settings'),
-        elevation: 0,
-      ),
       body: userAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
@@ -55,9 +137,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             );
           }
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
+          return SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              children: [
+                _HeaderCard(onMenuTap: () => _scaffoldKey.currentState?.openDrawer()),
+                const SizedBox(height: 16),
               // Profile Section
               Container(
                 padding: const EdgeInsets.all(20),
@@ -69,7 +154,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   children: [
                     CircleAvatar(
                       radius: 30,
-                      backgroundColor: AppTheme.primaryGreen.withOpacity(0.2),
+                      backgroundColor: AppTheme.primaryGreen.withAlpha(51),
                       child: Text(
                         (user.displayName?[0] ?? user.email[0]).toUpperCase(),
                         style: const TextStyle(
@@ -203,7 +288,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       value ? ThemeMode.dark : ThemeMode.light,
                     );
                   },
-                  activeColor: AppTheme.primaryGreen,
+                  activeThumbColor: AppTheme.primaryGreen,
                 ),
               ),
 
@@ -242,7 +327,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           }
                         });
                       },
-                      activeColor: AppTheme.primaryGreen,
+                      activeThumbColor: AppTheme.primaryGreen,
                     ),
                     Divider(color: Theme.of(context).dividerColor, height: 1),
                     SwitchListTile(
@@ -266,7 +351,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               });
                             }
                           : null,
-                      activeColor: AppTheme.primaryGreen,
+                      activeThumbColor: AppTheme.primaryGreen,
                     ),
                     Divider(color: Theme.of(context).dividerColor, height: 1),
                     SwitchListTile(
@@ -290,7 +375,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               });
                             }
                           : null,
-                      activeColor: AppTheme.primaryGreen,
+                      activeThumbColor: AppTheme.primaryGreen,
                     ),
                   ],
                 ),
@@ -418,12 +503,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ElevatedButton(
                 onPressed: () async {
                   final confirmed = await _showSignOutDialog();
-                  if (confirmed == true) {
-                    await ref.read(authControllerProvider.notifier).signOut();
-                    if (mounted) {
-                      context.go('/auth/login');
-                    }
-                  }
+                  if (confirmed != true) return;
+
+                  await ref.read(authControllerProvider.notifier).signOut();
+                  if (!context.mounted) return;
+
+                  context.go('/auth/login');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red[400],
@@ -451,7 +536,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               const SizedBox(height: 32),
             ],
-          );
+          ),
+        );
         },
       ),
     );
@@ -735,14 +821,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               try {
                 final fbUser = _auth.currentUser;
                 if (fbUser == null) return;
-                await fbUser.updateEmail(newEmail);
+                await fbUser.verifyBeforeUpdateEmail(newEmail);
                 await _updateFirestoreUser(user.uid, {'email': newEmail});
                 await fbUser.reload();
                 if (context.mounted) {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Email updated. You may need to re-verify.'),
+                      content: Text('Verification email sent. Please confirm to update your email.'),
                       backgroundColor: AppTheme.primaryGreen,
                     ),
                   );

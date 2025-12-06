@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../models/account.dart';
 import '../../providers/account_providers.dart';
-import '../../providers/loan_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_drawer.dart';
 
@@ -45,18 +44,17 @@ class DashboardScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'DASHBOARD',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppTheme.textSecondary,
-                                  letterSpacing: 1,
+                            'Dashboard',
+                            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                  color: AppTheme.textPrimary,
+                                  fontWeight: FontWeight.w700,
                                 ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Text(
-                            'Welcome, ${user?.displayName ?? 'User'}',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  color: AppTheme.textPrimary,
-                                  fontWeight: FontWeight.w600,
+                            'Welcome back, ${user?.displayName ?? 'User'}',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: AppTheme.textSecondary,
                                 ),
                           ),
                         ],
@@ -100,20 +98,20 @@ class DashboardScreen extends ConsumerWidget {
                         children: [
                           Expanded(
                             child: _SummaryCard(
-                              title: 'Total Cash In',
+                              title: 'Cash In',
                               amount: totalIn,
                               currencySymbol: currencySymbol,
-                              icon: Icons.arrow_downward_rounded,
-                              color: AppTheme.successGreen,
+                              icon: Icons.south_west_rounded,
+                              color: AppTheme.primaryTeal,
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: _SummaryCard(
-                              title: 'Total Cash Out',
+                              title: 'Cash Out',
                               amount: totalOut,
                               currencySymbol: currencySymbol,
-                              icon: Icons.arrow_upward_rounded,
+                              icon: Icons.north_east_rounded,
                               color: AppTheme.errorRed,
                             ),
                           ),
@@ -122,60 +120,7 @@ class DashboardScreen extends ConsumerWidget {
 
                       const SizedBox(height: 12),
 
-                      // Net Balance Card
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          gradient: AppTheme.primaryGradient,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.primaryGreen.withOpacity(0.3),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Net Balance',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  '$currencySymbol${_formatNumber(netBalance)}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.account_balance_wallet_outlined,
-                                color: Colors.white,
-                                size: 32,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      _NetBalanceCard(netBalance: netBalance, currencySymbol: currencySymbol),
 
                       const SizedBox(height: 24),
 
@@ -199,6 +144,9 @@ class DashboardScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
+
+                      const SizedBox(height: 12),
+                      const _QuickAddAccountButton(),
 
                       const SizedBox(height: 24),
 
@@ -225,9 +173,6 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  String _formatNumber(double number) {
-    return NumberFormat('#,##0.00').format(number);
-  }
 }
 
 class _SummaryCard extends StatelessWidget {
@@ -248,10 +193,19 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        gradient: AppTheme.glassGradient,
+        color: Theme.of(context).cardColor.withAlpha(230),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(38),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,7 +215,7 @@ class _SummaryCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withAlpha(26),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -282,8 +236,73 @@ class _SummaryCard extends StatelessWidget {
             '$currencySymbol${NumberFormat('#,##0.00').format(amount)}',
             style: TextStyle(
               color: Theme.of(context).textTheme.bodyLarge?.color,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NetBalanceCard extends StatelessWidget {
+  const _NetBalanceCard({required this.netBalance, required this.currencySymbol});
+
+  final double netBalance;
+  final String currencySymbol;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: AppTheme.primaryGradient,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryGreen.withAlpha(89),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Net Balance',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '$currencySymbol${NumberFormat('#,##0.00').format(netBalance)}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(46),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.account_balance_wallet_outlined,
+              color: Colors.white,
+              size: 32,
             ),
           ),
         ],
@@ -308,78 +327,113 @@ class _LoanPositionSection extends ConsumerWidget {
         return Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
+            gradient: AppTheme.glassGradient,
+            color: Theme.of(context).cardColor.withAlpha(230),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(38),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Icon(Icons.handshake_outlined, color: AppTheme.primaryGreen, size: 24),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.primaryGradient,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryGreen.withAlpha(71),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.handshake_outlined, color: Colors.white, size: 22),
+                  ),
                   const SizedBox(width: 12),
                   Text(
                     'Loan Summary',
                     style: TextStyle(
                       color: Theme.of(context).textTheme.bodyLarge?.color,
                       fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
               Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'I Owe',
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
-                            fontSize: 14,
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.errorRed.withAlpha(20),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppTheme.errorRed.withAlpha(51)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'I Owe',
+                            style: TextStyle(
+                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                              fontSize: 13,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '৳${NumberFormat('#,##0.00').format(iOwe)}',
-                          style: TextStyle(
-                            color: AppTheme.errorRed,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                          const SizedBox(height: 6),
+                          Text(
+                            '৳${NumberFormat('#,##0.00').format(iOwe)}',
+                            style: TextStyle(
+                              color: AppTheme.errorRed,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                  Container(
-                    width: 1,
-                    height: 40,
-                    color: Theme.of(context).dividerColor,
-                  ),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'They Owe',
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
-                            fontSize: 14,
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.successGreen.withAlpha(20),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppTheme.successGreen.withAlpha(64)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'They Owe',
+                            style: TextStyle(
+                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                              fontSize: 13,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '৳${NumberFormat('#,##0.00').format(theyOwe)}',
-                          style: TextStyle(
-                            color: AppTheme.successGreen,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                          const SizedBox(height: 6),
+                          Text(
+                            '৳${NumberFormat('#,##0.00').format(theyOwe)}',
+                            style: TextStyle(
+                              color: AppTheme.successGreen,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -413,6 +467,8 @@ class _LoanPositionSection extends ConsumerWidget {
 }
 
 class _QuickAddAccountButton extends StatelessWidget {
+  const _QuickAddAccountButton();
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -420,21 +476,36 @@ class _QuickAddAccountButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: AppTheme.primaryGreen.withOpacity(0.1),
+          gradient: AppTheme.glassGradient,
+          color: Theme.of(context).cardColor.withAlpha(235),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.primaryGreen.withOpacity(0.3)),
+          border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(31),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.primaryGreen,
+                gradient: AppTheme.primaryGradient,
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryGreen.withAlpha(76),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.add, color: Colors.white, size: 24),
+              child: const Icon(Icons.add, color: Colors.white, size: 22),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -446,7 +517,7 @@ class _QuickAddAccountButton extends StatelessWidget {
                     style: TextStyle(
                       color: AppTheme.textPrimary,
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -460,7 +531,7 @@ class _QuickAddAccountButton extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, color: AppTheme.textSecondary, size: 16),
+            Icon(Icons.arrow_forward_ios_rounded, color: AppTheme.textSecondary, size: 16),
           ],
         ),
       ),
@@ -478,9 +549,17 @@ class _ChartsOverviewSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderDark),
+        gradient: AppTheme.glassGradient,
+        color: Theme.of(context).cardColor.withAlpha(235),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(38),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,17 +567,37 @@ class _ChartsOverviewSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Charts Overview',
-                style: TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.primaryGradient,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryGreen.withAlpha(71),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.bar_chart_rounded, color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Charts Overview',
+                    style: TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
               TextButton(
                 onPressed: () => context.go('/reports'),
-                child: Text('View All'),
+                child: const Text('View All'),
               ),
             ],
           ),
@@ -553,7 +652,7 @@ class _ChartsOverviewSection extends StatelessWidget {
               reservedSize: 40,
               getTitlesWidget: (value, meta) {
                 return Text(
-                  '\$${(value / 1000).toStringAsFixed(0)}k',
+                  '৳${(value / 1000).toStringAsFixed(0)}k',
                   style: TextStyle(
                     color: AppTheme.textSecondary,
                     fontSize: 10,
@@ -610,17 +709,36 @@ class _QuickActionCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+          gradient: AppTheme.glassGradient,
+          color: Theme.of(context).cardColor.withAlpha(230),
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(31),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: AppTheme.primaryGreen,
-              size: 32,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryGreen.withAlpha(71),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: Colors.white, size: 24),
             ),
             const SizedBox(height: 12),
             Text(
@@ -628,7 +746,7 @@ class _QuickActionCard extends StatelessWidget {
               style: TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 14,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
@@ -678,19 +796,40 @@ class _AccountsListSection extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceDark,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.borderDark),
+                  gradient: AppTheme.glassGradient,
+                  color: Theme.of(context).cardColor.withAlpha(235),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(31),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      backgroundColor: AppTheme.primaryGreen.withOpacity(0.2),
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.primaryGradient,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryGreen.withAlpha(64),
+                            blurRadius: 14,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
                       child: Text(
                         account.title[0].toUpperCase(),
                         style: const TextStyle(
-                          color: AppTheme.primaryGreen,
-                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
@@ -703,7 +842,7 @@ class _AccountsListSection extends StatelessWidget {
                             account.title,
                             style: const TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
                           ),
@@ -726,9 +865,7 @@ class _AccountsListSection extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: balance >= 0
-                                ? AppTheme.primaryGreen
-                                : Colors.red[400],
+                            color: balance >= 0 ? AppTheme.primaryGreen : Colors.red[400],
                           ),
                         ),
                         const SizedBox(height: 4),

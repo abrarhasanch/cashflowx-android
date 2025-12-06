@@ -31,7 +31,7 @@ class AppDrawer extends ConsumerWidget {
                 children: [
                   CircleAvatar(
                     radius: 32,
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: Colors.white.withAlpha(51),
                     child: Text(
                       (user?.displayName?[0] ?? user?.email[0] ?? 'U').toUpperCase(),
                       style: const TextStyle(
@@ -55,7 +55,7 @@ class AppDrawer extends ConsumerWidget {
                     user?.email ?? '',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withAlpha(230),
                     ),
                   ),
                 ],
@@ -181,7 +181,7 @@ class _DrawerItem extends StatelessWidget {
         ),
       ),
       selected: selected,
-      selectedTileColor: AppTheme.primaryGreen.withOpacity(0.1),
+      selectedTileColor: AppTheme.primaryGreen.withAlpha(26),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),

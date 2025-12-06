@@ -125,25 +125,44 @@ class _LoanCard extends ConsumerWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: AppTheme.cardDark,
+      color: Colors.transparent,
+      elevation: 0,
       child: InkWell(
         onTap: () => _showLoanDetail(context, ref, contact),
-        child: Padding(
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
           padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: AppTheme.glassGradient,
+            color: AppTheme.surfaceDarkElevated.withAlpha(235),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(41),
+                blurRadius: 16,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isPositive
-                      ? Colors.green.withOpacity(0.2)
-                      : Colors.red.withOpacity(0.2),
+                  gradient: isPositive
+                      ? AppTheme.primaryGradient
+                      : const LinearGradient(
+                          colors: [Color(0xFFEF4444), Color(0xFFFF7F7F)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   isPositive ? Icons.arrow_downward : Icons.arrow_upward,
-                  color: isPositive ? Colors.green : Colors.red,
-                  size: 24,
+                  color: Colors.white,
+                  size: 20,
                 ),
               ),
               const SizedBox(width: 16),
@@ -155,7 +174,7 @@ class _LoanCard extends ConsumerWidget {
                       contact.name,
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -176,8 +195,8 @@ class _LoanCard extends ConsumerWidget {
                     '$currencySymbol${netAmount.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isPositive ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.w800,
+                      color: isPositive ? AppTheme.primaryTeal : AppTheme.errorRed,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -231,21 +250,43 @@ class LoanDetailSheet extends ConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: AppTheme.glassGradient,
+        color: AppTheme.surfaceDarkElevated.withAlpha(242),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(color: AppTheme.borderDark.withAlpha(128)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(46),
+            blurRadius: 20,
+            offset: const Offset(0, -8),
+          ),
+        ],
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: isPositive
-                    ? Colors.green.withOpacity(0.2)
-                    : Colors.red.withOpacity(0.2),
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  gradient: isPositive
+                      ? AppTheme.primaryGradient
+                      : const LinearGradient(
+                          colors: [Color(0xFFEF4444), Color(0xFFFF7F7F)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                alignment: Alignment.center,
                 child: Icon(
                   isPositive ? Icons.arrow_downward : Icons.arrow_upward,
-                  color: isPositive ? Colors.green : Colors.red,
-                  size: 30,
+                  color: Colors.white,
+                  size: 28,
                 ),
               ),
               const SizedBox(width: 16),
@@ -257,7 +298,7 @@ class LoanDetailSheet extends ConsumerWidget {
                       contact.name,
                       style: const TextStyle(
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                     Text(
@@ -272,7 +313,7 @@ class LoanDetailSheet extends ConsumerWidget {
               ),
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close),
+                icon: Icon(Icons.close, color: AppTheme.textSecondary),
               ),
             ],
           ),
@@ -280,14 +321,21 @@ class LoanDetailSheet extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isPositive
-                  ? Colors.green.withOpacity(0.1)
-                  : Colors.red.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isPositive ? Colors.green : Colors.red,
-                width: 2,
-              ),
+              gradient: isPositive
+                  ? AppTheme.primaryGradient
+                  : const LinearGradient(
+                      colors: [Color(0xFFEF4444), Color(0xFFFF7F7F)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(46),
+                  blurRadius: 18,
+                  offset: const Offset(0, 12),
+                ),
+              ],
             ),
             child: Column(
               children: [
@@ -295,16 +343,16 @@ class LoanDetailSheet extends ConsumerWidget {
                   'Net Amount',
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppTheme.textSecondary,
+                    color: Colors.white70,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   '$currencySymbol${loan.net.abs().toStringAsFixed(2)}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: isPositive ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
                   ),
                 ),
               ],
@@ -392,12 +440,14 @@ class LoanDetailSheet extends ConsumerWidget {
                     icon: const Icon(Icons.check),
                     label: const Text('Mark as Paid'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      backgroundColor: AppTheme.primaryTeal,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
+                      elevation: 6,
+                      shadowColor: AppTheme.primaryTeal.withAlpha(76),
                     ),
                   ),
                 ),
@@ -408,12 +458,14 @@ class LoanDetailSheet extends ConsumerWidget {
                     icon: const Icon(Icons.payments),
                     label: const Text('Settle & Pay'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryGreen,
+                      backgroundColor: AppTheme.errorRed,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
+                      elevation: 6,
+                      shadowColor: AppTheme.errorRed.withAlpha(76),
                     ),
                   ),
                 ),
@@ -517,11 +569,19 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        gradient: AppTheme.glassGradient,
+        color: AppTheme.surfaceDarkElevated.withAlpha(230),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(31),
+            blurRadius: 12,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -537,7 +597,7 @@ class _SummaryCard extends StatelessWidget {
             '$currencySymbol${amount.toStringAsFixed(2)}',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w800,
               color: color,
             ),
           ),
@@ -560,22 +620,42 @@ class _EventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isYouGave = event.type == LoanEventType.youLent;
     final icon = isYouGave ? Icons.arrow_upward : Icons.arrow_downward;
-    final color = isYouGave ? Colors.green : Colors.red;
+    final color = isYouGave ? AppTheme.primaryTeal : AppTheme.errorRed;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      color: Theme.of(context).cardColor,
-      child: Padding(
+      margin: const EdgeInsets.only(bottom: 10),
+      color: Colors.transparent,
+      elevation: 0,
+      child: Container(
         padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          gradient: AppTheme.glassGradient,
+          color: AppTheme.surfaceDarkElevated.withAlpha(230),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(31),
+              blurRadius: 12,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(9),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
+                gradient: isYouGave
+                    ? AppTheme.primaryGradient
+                    : const LinearGradient(
+                        colors: [Color(0xFFEF4444), Color(0xFFFF7F7F)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: color, size: 20),
+              child: Icon(icon, color: Colors.white, size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -586,7 +666,7 @@ class _EventCard extends StatelessWidget {
                     _getEventLabel(event.type),
                     style: const TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(
@@ -603,7 +683,7 @@ class _EventCard extends StatelessWidget {
               '$currencySymbol${event.amount.toStringAsFixed(2)}',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
                 color: color,
               ),
             ),
@@ -664,6 +744,19 @@ class _AddLoanSheetState extends ConsumerState<AddLoanSheet> {
       child: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: AppTheme.glassGradient,
+            color: AppTheme.surfaceDarkElevated.withAlpha(242),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: AppTheme.borderDark.withAlpha(128)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(46),
+                blurRadius: 20,
+                offset: const Offset(0, -8),
+              ),
+            ],
+          ),
           child: Form(
             key: _formKey,
             child: Column(
@@ -674,7 +767,7 @@ class _AddLoanSheetState extends ConsumerState<AddLoanSheet> {
                   'Add Loan Transaction',
                   style: TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -687,11 +780,21 @@ class _AddLoanSheetState extends ConsumerState<AddLoanSheet> {
                     }
 
                     return DropdownButtonFormField<String>(
-                      value: _selectedContactId,
+                        initialValue: _selectedContactId,
                       decoration: InputDecoration(
                         labelText: 'Contact',
+                        filled: true,
+                        fillColor: AppTheme.surfaceDarkElevated,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: AppTheme.primaryTeal),
                         ),
                       ),
                       items: contacts.map((contact) {
@@ -866,6 +969,19 @@ class _AddLoanEventSheetState extends ConsumerState<AddLoanEventSheet> {
       child: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: AppTheme.glassGradient,
+            color: AppTheme.surfaceDarkElevated.withAlpha(242),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: AppTheme.borderDark.withAlpha(128)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(46),
+                blurRadius: 20,
+                offset: const Offset(0, -8),
+              ),
+            ],
+          ),
           child: Form(
             key: _formKey,
             child: Column(
@@ -876,7 +992,7 @@ class _AddLoanEventSheetState extends ConsumerState<AddLoanEventSheet> {
                   'Add Transaction with ${widget.contactName}',
                   style: const TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -894,7 +1010,8 @@ class _AddLoanEventSheetState extends ConsumerState<AddLoanEventSheet> {
                       child: _TypeButton(
                         label: 'You Gave',
                         icon: Icons.arrow_upward,
-                        color: Colors.green,
+                        color: AppTheme.primaryTeal,
+                        gradient: AppTheme.primaryGradient,
                         selected: _eventType == LoanEventType.youLent,
                         onTap: () => setState(() => _eventType = LoanEventType.youLent),
                       ),
@@ -904,7 +1021,12 @@ class _AddLoanEventSheetState extends ConsumerState<AddLoanEventSheet> {
                       child: _TypeButton(
                         label: 'You Took',
                         icon: Icons.arrow_downward,
-                        color: Colors.red,
+                        color: AppTheme.errorRed,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFEF4444), Color(0xFFFF7F7F)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                         selected: _eventType == LoanEventType.youBorrowed,
                         onTap: () => setState(() => _eventType = LoanEventType.youBorrowed),
                       ),
@@ -918,8 +1040,18 @@ class _AddLoanEventSheetState extends ConsumerState<AddLoanEventSheet> {
                   decoration: InputDecoration(
                     labelText: 'Amount',
                     prefixText: '${widget.currencySymbol} ',
+                    filled: true,
+                    fillColor: AppTheme.surfaceDarkElevated,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.primaryTeal),
                     ),
                   ),
                   validator: (value) {
@@ -938,12 +1070,14 @@ class _AddLoanEventSheetState extends ConsumerState<AddLoanEventSheet> {
                   child: ElevatedButton(
                     onPressed: _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryGreen,
+                      backgroundColor: AppTheme.primaryTeal,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
+                      elevation: 6,
+                      shadowColor: AppTheme.primaryTeal.withAlpha(76),
                     ),
                     child: const Text('Add Transaction'),
                   ),
@@ -983,6 +1117,7 @@ class _TypeButton extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.color,
+    this.gradient,
     required this.selected,
     required this.onTap,
   });
@@ -990,30 +1125,42 @@ class _TypeButton extends StatelessWidget {
   final String label;
   final IconData icon;
   final Color color;
+  final LinearGradient? gradient;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final showGradient = selected && gradient != null;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.2) : AppTheme.cardDark,
+          gradient: showGradient ? gradient : null,
+          color: showGradient ? null : (selected ? color.withAlpha(31) : AppTheme.surfaceDarkElevated),
           border: Border.all(
-            color: selected ? color : AppTheme.textSecondary.withOpacity(0.3),
+            color: selected ? color : AppTheme.borderDark.withAlpha(153),
             width: selected ? 2 : 1,
           ),
-          borderRadius: BorderRadius.circular(12),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: color.withAlpha(56),
+                    blurRadius: 14,
+                    offset: const Offset(0, 10),
+                  ),
+                ]
+              : [],
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
           children: [
             Icon(
               icon,
-              color: selected ? color : AppTheme.textSecondary,
-              size: 24,
+              color: selected ? Colors.white : AppTheme.textSecondary,
+              size: 22,
             ),
             const SizedBox(height: 8),
             Text(
@@ -1021,8 +1168,8 @@ class _TypeButton extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                color: selected ? color : AppTheme.textSecondary,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: selected ? Colors.white : AppTheme.textSecondary,
               ),
             ),
           ],

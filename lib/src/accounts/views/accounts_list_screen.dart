@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../auth/controllers/auth_controller.dart';
 import '../../providers/account_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_drawer.dart';
@@ -14,7 +13,6 @@ class AccountsListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authStateChangesProvider).valueOrNull;
     final accountsAsync = ref.watch(accountsProvider);
 
     return Scaffold(
@@ -27,47 +25,56 @@ class AccountsListScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        _IconButton(
-                          icon: Icons.menu,
-                          onTap: () => Scaffold.of(scaffoldContext).openDrawer(),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.primaryGradient,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryGreen.withAlpha(71),
+                        blurRadius: 24,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      _IconButton(
+                        icon: Icons.menu,
+                        onTap: () => Scaffold.of(scaffoldContext).openDrawer(),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'ACCOUNTS',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppTheme.textSecondary,
-                                    letterSpacing: 1,
+                              'Accounts',
+                              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
                                   ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             Text(
-                              'Manage Your Accounts',
-                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                    color: AppTheme.textPrimary,
-                                    fontWeight: FontWeight.w600,
+                              'Manage balances and track cash flows',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white70,
                                   ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                    _IconButton(
-                      icon: Icons.add,
-                      onTap: () => _showCreateAccountSheet(context, ref, 'BDT'),
-                    ),
-                  ],
+                      ),
+                      _IconButton(
+                        icon: Icons.add,
+                        onTap: () => _showCreateAccountSheet(context, ref, 'BDT'),
+                      ),
+                    ],
+                  ),
                 ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Accounts List
               accountsAsync.when(
@@ -172,12 +179,21 @@ class _AccountCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: AppTheme.glassGradient,
+              color: Theme.of(context).cardColor.withAlpha(235),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(46),
+                  blurRadius: 18,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -186,13 +202,13 @@ class _AccountCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryGreen.withOpacity(0.1),
+                      gradient: AppTheme.primaryGradient,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.account_balance_wallet_outlined,
-                      color: AppTheme.primaryGreen,
-                      size: 24,
+                      color: Colors.white,
+                      size: 22,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -205,7 +221,7 @@ class _AccountCard extends StatelessWidget {
                           style: TextStyle(
                             color: AppTheme.textPrimary,
                             fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         if (description.isNotEmpty) ...[
@@ -252,8 +268,8 @@ class _AccountCard extends StatelessWidget {
                   ),
                   Container(
                     width: 1,
-                    height: 40,
-                    color: AppTheme.borderDark,
+                    height: 44,
+                    color: AppTheme.borderDark.withAlpha(153),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -267,8 +283,8 @@ class _AccountCard extends StatelessWidget {
                               '$currencySymbol${NumberFormat('#,##0').format(totalIn)}',
                               style: TextStyle(
                                 color: AppTheme.successGreen,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
@@ -282,8 +298,8 @@ class _AccountCard extends StatelessWidget {
                               '$currencySymbol${NumberFormat('#,##0').format(totalOut)}',
                               style: TextStyle(
                                 color: AppTheme.errorRed,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
@@ -365,7 +381,7 @@ class _CreateAccountSheetState extends ConsumerState<_CreateAccountSheet> {
                   style: TextStyle(
                     color: AppTheme.textPrimary,
                     fontSize: 20,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 IconButton(
@@ -382,12 +398,6 @@ class _CreateAccountSheetState extends ConsumerState<_CreateAccountSheet> {
               decoration: InputDecoration(
                 labelText: 'Account Name',
                 hintText: 'e.g., Main Bank Account',
-                filled: true,
-                fillColor: AppTheme.cardDark,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppTheme.borderDark),
-                ),
               ),
               validator: (value) => value?.isEmpty ?? true ? 'Name is required' : null,
             ),
@@ -398,12 +408,6 @@ class _CreateAccountSheetState extends ConsumerState<_CreateAccountSheet> {
               decoration: InputDecoration(
                 labelText: 'Description (Optional)',
                 hintText: 'Add a description',
-                filled: true,
-                fillColor: AppTheme.cardDark,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppTheme.borderDark),
-                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -414,12 +418,6 @@ class _CreateAccountSheetState extends ConsumerState<_CreateAccountSheet> {
               decoration: InputDecoration(
                 labelText: 'Currency',
                 hintText: 'BDT',
-                filled: true,
-                fillColor: AppTheme.cardDark,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppTheme.borderDark),
-                ),
               ),
               validator: (value) => value?.isEmpty ?? true ? 'Currency is required' : null,
             ),
@@ -475,8 +473,9 @@ class _IconButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(12),
+          color: Theme.of(context).cardColor.withAlpha(230),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
         ),
         child: Icon(icon, color: AppTheme.textPrimary, size: 20),
       ),

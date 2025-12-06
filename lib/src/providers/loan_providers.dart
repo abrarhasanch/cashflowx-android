@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/friend_loan.dart';
 import '../models/loan_event.dart';
@@ -29,7 +30,7 @@ class LoanController extends StateNotifier<AsyncValue<void>> {
   LoanController(this._service, this._auth, this._ref) : super(const AsyncData(null));
 
   final FirestoreService _service;
-  final _auth;
+  final FirebaseAuth _auth;
   final Ref _ref;
 
   Future<FriendLoan?> createLoan(String accountId, String contactId) async {

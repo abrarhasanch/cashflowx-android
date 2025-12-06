@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../theme/app_theme.dart';
 import '../controllers/auth_controller.dart';
@@ -24,16 +25,16 @@ class SplashScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF8B5CF6).withOpacity(0.4),
+                    color: const Color(0xFF8B5CF6).withAlpha(102),
                     blurRadius: 30,
                     offset: const Offset(0, 10),
                   ),
                 ],
               ),
-              child: const Icon(
-                Icons.account_balance_wallet_outlined,
-                size: 48,
-                color: Colors.white,
+              child: Image.asset(
+                'assets/icons/app_icon.png',
+                height: 56,
+                width: 56,
               ),
             ),
             const SizedBox(height: 24),
@@ -55,13 +56,9 @@ class SplashScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 32),
             if (authState.isLoading)
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppTheme.primaryGreen,
-                ),
+              LoadingAnimationWidget.newtonCradle(
+                color: AppTheme.primaryGreen,
+                size: 56,
               ),
           ],
         ),

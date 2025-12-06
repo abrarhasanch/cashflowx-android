@@ -26,60 +26,87 @@ class MembersTab extends ConsumerWidget {
         children: [
           // Invite Section (only for managers and owners)
           if (canManage) ...[
-            Card(
-              color: AppTheme.cardDark,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.link, color: AppTheme.primaryGreen),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Invite Members',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: AppTheme.glassGradient,
+                color: AppTheme.surfaceDarkElevated.withAlpha(235),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(36),
+                    blurRadius: 16,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          gradient: AppTheme.primaryGradient,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Share this link to invite members to this account',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppTheme.textSecondary,
+                        child: const Icon(Icons.link, color: Colors.white, size: 18),
                       ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Invite Members',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Share this link to invite members to this account',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.textSecondary,
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => _generateAndCopyLink(context, ref),
-                            icon: const Icon(Icons.copy),
-                            label: const Text('Copy Link'),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _generateAndCopyLink(context, ref),
+                          icon: const Icon(Icons.copy),
+                          label: const Text('Copy Link'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.textPrimary,
+                            side: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () => _generateAndShareLink(context, ref),
-                            icon: const Icon(Icons.share),
-                            label: const Text('Share'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primaryGreen,
-                              foregroundColor: Colors.white,
-                            ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _generateAndShareLink(context, ref),
+                          icon: const Icon(Icons.share),
+                          label: const Text('Share'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryTeal,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            elevation: 6,
+                            shadowColor: AppTheme.primaryTeal.withAlpha(76),
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -202,17 +229,36 @@ class _MemberCard extends ConsumerWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: AppTheme.cardDark,
-      child: Padding(
+      color: Colors.transparent,
+      elevation: 0,
+      child: Container(
         padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: AppTheme.glassGradient,
+          color: AppTheme.surfaceDarkElevated.withAlpha(235),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(36),
+              blurRadius: 16,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
         child: Row(
           children: [
-            // Avatar
-            CircleAvatar(
-              backgroundColor: _getRoleColor(member.role).withOpacity(0.2),
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              alignment: Alignment.center,
               child: Icon(
                 Icons.person,
-                color: _getRoleColor(member.role),
+                color: Colors.white,
               ),
             ),
             const SizedBox(width: 16),
@@ -228,7 +274,7 @@ class _MemberCard extends ConsumerWidget {
                         member.uid.substring(0, 8), // Show truncated ID
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       if (isSelf) ...[
@@ -236,7 +282,7 @@ class _MemberCard extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryGreen.withOpacity(0.2),
+                            color: AppTheme.primaryTeal.withAlpha(46),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -244,7 +290,7 @@ class _MemberCard extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryGreen,
+                              color: AppTheme.primaryTeal,
                             ),
                           ),
                         ),
@@ -255,14 +301,14 @@ class _MemberCard extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _getRoleColor(member.role).withOpacity(0.2),
+                      color: _getRoleColor(member.role).withAlpha(51),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       _getRoleLabel(member.role),
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                         color: _getRoleColor(member.role),
                       ),
                     ),
@@ -408,6 +454,19 @@ class _AddMemberSheetState extends ConsumerState<_AddMemberSheet> {
       ),
       child: Container(
         padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: AppTheme.glassGradient,
+          color: AppTheme.surfaceDarkElevated.withAlpha(242),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: AppTheme.borderDark.withAlpha(128)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(46),
+              blurRadius: 20,
+              offset: const Offset(0, -8),
+            ),
+          ],
+        ),
         child: Form(
           key: _formKey,
           child: Column(
@@ -418,7 +477,7 @@ class _AddMemberSheetState extends ConsumerState<_AddMemberSheet> {
                 'Add Member',
                 style: TextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(height: 24),
@@ -428,8 +487,18 @@ class _AddMemberSheetState extends ConsumerState<_AddMemberSheet> {
                 decoration: InputDecoration(
                   labelText: 'User ID',
                   hintText: 'Enter user ID',
+                  filled: true,
+                  fillColor: AppTheme.surfaceDarkElevated,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: AppTheme.primaryTeal),
                   ),
                 ),
                 validator: (value) {
@@ -456,7 +525,9 @@ class _AddMemberSheetState extends ConsumerState<_AddMemberSheet> {
                   title: Text(_getRoleLabel(role)),
                   subtitle: Text(_getRoleDescription(role)),
                   value: role,
+                  // ignore: deprecated_member_use
                   groupValue: _selectedRole,
+                  // ignore: deprecated_member_use
                   onChanged: (value) {
                     if (value != null) {
                       setState(() => _selectedRole = value);
@@ -473,12 +544,14 @@ class _AddMemberSheetState extends ConsumerState<_AddMemberSheet> {
                 child: ElevatedButton(
                   onPressed: _addMember,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryGreen,
+                    backgroundColor: AppTheme.primaryTeal,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
+                    elevation: 6,
+                    shadowColor: AppTheme.primaryTeal.withAlpha(76),
                   ),
                   child: const Text('Add Member'),
                 ),
@@ -561,6 +634,19 @@ class _ChangeRoleSheetState extends ConsumerState<_ChangeRoleSheet> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: AppTheme.glassGradient,
+        color: AppTheme.surfaceDarkElevated.withAlpha(242),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(color: AppTheme.borderDark.withAlpha(128)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(46),
+            blurRadius: 20,
+            offset: const Offset(0, -8),
+          ),
+        ],
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -569,7 +655,7 @@ class _ChangeRoleSheetState extends ConsumerState<_ChangeRoleSheet> {
             'Change Role',
             style: TextStyle(
               fontSize: 24,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 24),
@@ -579,7 +665,10 @@ class _ChangeRoleSheetState extends ConsumerState<_ChangeRoleSheet> {
               title: Text(_getRoleLabel(role)),
               subtitle: Text(_getRoleDescription(role)),
               value: role,
+              // ignore: deprecated_member_use
               groupValue: _selectedRole,
+              activeColor: AppTheme.primaryTeal,
+              // ignore: deprecated_member_use
               onChanged: (value) {
                 if (value != null) {
                   setState(() => _selectedRole = value);
@@ -596,12 +685,14 @@ class _ChangeRoleSheetState extends ConsumerState<_ChangeRoleSheet> {
             child: ElevatedButton(
               onPressed: _changeRole,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryGreen,
+                backgroundColor: AppTheme.primaryTeal,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
+                elevation: 6,
+                shadowColor: AppTheme.primaryTeal.withAlpha(76),
               ),
               child: const Text('Update Role'),
             ),

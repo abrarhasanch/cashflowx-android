@@ -62,8 +62,10 @@ class ContactsTab extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddContactSheet(context, ref),
-        backgroundColor: AppTheme.primaryGreen,
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: AppTheme.primaryTeal,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -91,20 +93,42 @@ class _ContactCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: AppTheme.cardDark,
+      color: Colors.transparent,
+      elevation: 0,
       child: InkWell(
         onTap: () => _showContactDetail(context, ref),
-        child: Padding(
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
           padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: AppTheme.glassGradient,
+            color: AppTheme.surfaceDarkElevated.withAlpha(235),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppTheme.borderDark.withAlpha(153)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(36),
+                blurRadius: 16,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
           child: Row(
             children: [
-              CircleAvatar(
-                backgroundColor: AppTheme.primaryGreen.withOpacity(0.2),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                alignment: Alignment.center,
                 child: Text(
                   contact.name[0].toUpperCase(),
-                  style: TextStyle(
-                    color: AppTheme.primaryGreen,
-                    fontWeight: FontWeight.bold,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
                   ),
                 ),
               ),
@@ -117,7 +141,7 @@ class _ContactCard extends ConsumerWidget {
                       contact.name,
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     if (contact.phone != null) ...[
@@ -150,11 +174,14 @@ class _ContactCard extends ConsumerWidget {
                             color: AppTheme.textSecondary,
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            contact.email!,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppTheme.textSecondary,
+                          Flexible(
+                            child: Text(
+                              contact.email!,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppTheme.textSecondary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -201,21 +228,39 @@ class ContactDetailSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: AppTheme.glassGradient,
+        color: AppTheme.surfaceDarkElevated.withAlpha(242),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(color: AppTheme.borderDark.withAlpha(128)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(46),
+            blurRadius: 20,
+            offset: const Offset(0, -8),
+          ),
+        ],
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: AppTheme.primaryGreen.withOpacity(0.2),
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                alignment: Alignment.center,
                 child: Text(
                   contact.name[0].toUpperCase(),
-                  style: TextStyle(
-                    color: AppTheme.primaryGreen,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
@@ -225,13 +270,13 @@ class ContactDetailSheet extends ConsumerWidget {
                   contact.name,
                   style: const TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close),
+                icon: Icon(Icons.close, color: AppTheme.textSecondary),
               ),
             ],
           ),
@@ -271,6 +316,12 @@ class ContactDetailSheet extends ConsumerWidget {
                   },
                   icon: const Icon(Icons.edit),
                   label: const Text('Edit'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.textPrimary,
+                    side: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -280,8 +331,10 @@ class ContactDetailSheet extends ConsumerWidget {
                   icon: const Icon(Icons.delete),
                   label: const Text('Delete'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
+                    foregroundColor: AppTheme.errorRed,
+                    side: BorderSide(color: AppTheme.errorRed.withAlpha(204)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
@@ -434,6 +487,19 @@ class _AddContactSheetState extends ConsumerState<AddContactSheet> {
       child: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: AppTheme.glassGradient,
+            color: AppTheme.surfaceDarkElevated.withAlpha(242),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: AppTheme.borderDark.withAlpha(128)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(46),
+                blurRadius: 20,
+                offset: const Offset(0, -8),
+              ),
+            ],
+          ),
           child: Form(
             key: _formKey,
             child: Column(
@@ -444,7 +510,7 @@ class _AddContactSheetState extends ConsumerState<AddContactSheet> {
                   isEditing ? 'Edit Contact' : 'Add Contact',
                   style: const TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -453,8 +519,18 @@ class _AddContactSheetState extends ConsumerState<AddContactSheet> {
                   decoration: InputDecoration(
                     labelText: 'Name',
                     prefixIcon: const Icon(Icons.person),
+                    filled: true,
+                    fillColor: AppTheme.surfaceDarkElevated,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.primaryTeal),
                     ),
                   ),
                   validator: (value) {
@@ -470,8 +546,18 @@ class _AddContactSheetState extends ConsumerState<AddContactSheet> {
                   decoration: InputDecoration(
                     labelText: 'Phone (Optional)',
                     prefixIcon: const Icon(Icons.phone),
+                    filled: true,
+                    fillColor: AppTheme.surfaceDarkElevated,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.primaryTeal),
                     ),
                   ),
                   keyboardType: TextInputType.phone,
@@ -482,8 +568,18 @@ class _AddContactSheetState extends ConsumerState<AddContactSheet> {
                   decoration: InputDecoration(
                     labelText: 'Email (Optional)',
                     prefixIcon: const Icon(Icons.email),
+                    filled: true,
+                    fillColor: AppTheme.surfaceDarkElevated,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.primaryTeal),
                     ),
                   ),
                   keyboardType: TextInputType.emailAddress,
@@ -494,8 +590,18 @@ class _AddContactSheetState extends ConsumerState<AddContactSheet> {
                   decoration: InputDecoration(
                     labelText: 'Notes (Optional)',
                     prefixIcon: const Icon(Icons.note),
+                    filled: true,
+                    fillColor: AppTheme.surfaceDarkElevated,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.borderDark.withAlpha(153)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.primaryTeal),
                     ),
                   ),
                   maxLines: 3,
@@ -506,12 +612,14 @@ class _AddContactSheetState extends ConsumerState<AddContactSheet> {
                   child: ElevatedButton(
                     onPressed: _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryGreen,
+                      backgroundColor: AppTheme.primaryTeal,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
+                      elevation: 6,
+                      shadowColor: AppTheme.primaryTeal.withAlpha(76),
                     ),
                     child: Text(isEditing ? 'Update Contact' : 'Add Contact'),
                   ),

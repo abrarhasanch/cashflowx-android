@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../auth/controllers/auth_controller.dart';
 import '../models/account.dart';
@@ -34,7 +35,7 @@ class AccountController extends StateNotifier<AsyncValue<Account?>> {
   AccountController(this._service, this._auth) : super(const AsyncData(null));
 
   final FirestoreService _service;
-  final _auth;
+  final FirebaseAuth _auth;
 
   Future<Account?> createAccount(String title, String description, String currency) async {
     state = const AsyncLoading();

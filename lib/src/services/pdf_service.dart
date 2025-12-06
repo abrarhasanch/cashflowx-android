@@ -4,7 +4,6 @@ import 'package:pdf/widgets.dart' as pw;
 
 import '../models/account.dart';
 import '../models/transaction.dart';
-import '../theme/app_theme.dart';
 
 // Conditional imports for platform-specific functionality
 import 'pdf_service_mobile.dart' if (dart.library.html) 'pdf_service_web.dart' as platform;
@@ -252,10 +251,10 @@ class PdfService {
                 children: [
                   _buildTableCell(account.title),
                   _buildTableCell(account.currency),
-                  _buildTableCell('${totalIn.toStringAsFixed(2)}'),
-                  _buildTableCell('${totalOut.toStringAsFixed(2)}'),
+                  _buildTableCell(totalIn.toStringAsFixed(2)),
+                  _buildTableCell(totalOut.toStringAsFixed(2)),
                   _buildTableCell(
-                    '${balance.toStringAsFixed(2)}',
+                    balance.toStringAsFixed(2),
                     color: balance >= 0 ? PdfColors.green : PdfColors.red,
                   ),
                 ],

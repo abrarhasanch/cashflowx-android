@@ -22,8 +22,7 @@ FriendLoan _$FriendLoanFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$FriendLoan {
   String get id => throw _privateConstructorUsedError;
-  String get shelfId => throw _privateConstructorUsedError;
-  String get bookId => throw _privateConstructorUsedError;
+  String get accountId => throw _privateConstructorUsedError;
   String get contactId => throw _privateConstructorUsedError;
   double get totalYouGave => throw _privateConstructorUsedError;
   double get totalYouTook => throw _privateConstructorUsedError;
@@ -53,8 +52,7 @@ abstract class $FriendLoanCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
-    String shelfId,
-    String bookId,
+    String accountId,
     String contactId,
     double totalYouGave,
     double totalYouTook,
@@ -81,8 +79,7 @@ class _$FriendLoanCopyWithImpl<$Res, $Val extends FriendLoan>
   @override
   $Res call({
     Object? id = null,
-    Object? shelfId = null,
-    Object? bookId = null,
+    Object? accountId = null,
     Object? contactId = null,
     Object? totalYouGave = null,
     Object? totalYouTook = null,
@@ -97,13 +94,9 @@ class _$FriendLoanCopyWithImpl<$Res, $Val extends FriendLoan>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as String,
-            shelfId: null == shelfId
-                ? _value.shelfId
-                : shelfId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            bookId: null == bookId
-                ? _value.bookId
-                : bookId // ignore: cast_nullable_to_non_nullable
+            accountId: null == accountId
+                ? _value.accountId
+                : accountId // ignore: cast_nullable_to_non_nullable
                       as String,
             contactId: null == contactId
                 ? _value.contactId
@@ -150,8 +143,7 @@ abstract class _$$FriendLoanImplCopyWith<$Res>
   @useResult
   $Res call({
     String id,
-    String shelfId,
-    String bookId,
+    String accountId,
     String contactId,
     double totalYouGave,
     double totalYouTook,
@@ -177,8 +169,7 @@ class __$$FriendLoanImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? shelfId = null,
-    Object? bookId = null,
+    Object? accountId = null,
     Object? contactId = null,
     Object? totalYouGave = null,
     Object? totalYouTook = null,
@@ -193,13 +184,9 @@ class __$$FriendLoanImplCopyWithImpl<$Res>
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as String,
-        shelfId: null == shelfId
-            ? _value.shelfId
-            : shelfId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        bookId: null == bookId
-            ? _value.bookId
-            : bookId // ignore: cast_nullable_to_non_nullable
+        accountId: null == accountId
+            ? _value.accountId
+            : accountId // ignore: cast_nullable_to_non_nullable
                   as String,
         contactId: null == contactId
             ? _value.contactId
@@ -239,8 +226,7 @@ class __$$FriendLoanImplCopyWithImpl<$Res>
 class _$FriendLoanImpl implements _FriendLoan {
   const _$FriendLoanImpl({
     required this.id,
-    required this.shelfId,
-    required this.bookId,
+    required this.accountId,
     required this.contactId,
     this.totalYouGave = 0.0,
     this.totalYouTook = 0.0,
@@ -256,9 +242,7 @@ class _$FriendLoanImpl implements _FriendLoan {
   @override
   final String id;
   @override
-  final String shelfId;
-  @override
-  final String bookId;
+  final String accountId;
   @override
   final String contactId;
   @override
@@ -281,7 +265,7 @@ class _$FriendLoanImpl implements _FriendLoan {
 
   @override
   String toString() {
-    return 'FriendLoan(id: $id, shelfId: $shelfId, bookId: $bookId, contactId: $contactId, totalYouGave: $totalYouGave, totalYouTook: $totalYouTook, net: $net, createdAt: $createdAt, updatedAt: $updatedAt, createdByUid: $createdByUid)';
+    return 'FriendLoan(id: $id, accountId: $accountId, contactId: $contactId, totalYouGave: $totalYouGave, totalYouTook: $totalYouTook, net: $net, createdAt: $createdAt, updatedAt: $updatedAt, createdByUid: $createdByUid)';
   }
 
   @override
@@ -290,8 +274,8 @@ class _$FriendLoanImpl implements _FriendLoan {
         (other.runtimeType == runtimeType &&
             other is _$FriendLoanImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.shelfId, shelfId) || other.shelfId == shelfId) &&
-            (identical(other.bookId, bookId) || other.bookId == bookId) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
             (identical(other.contactId, contactId) ||
                 other.contactId == contactId) &&
             (identical(other.totalYouGave, totalYouGave) ||
@@ -312,8 +296,7 @@ class _$FriendLoanImpl implements _FriendLoan {
   int get hashCode => Object.hash(
     runtimeType,
     id,
-    shelfId,
-    bookId,
+    accountId,
     contactId,
     totalYouGave,
     totalYouTook,
@@ -340,8 +323,7 @@ class _$FriendLoanImpl implements _FriendLoan {
 abstract class _FriendLoan implements FriendLoan {
   const factory _FriendLoan({
     required final String id,
-    required final String shelfId,
-    required final String bookId,
+    required final String accountId,
     required final String contactId,
     final double totalYouGave,
     final double totalYouTook,
@@ -357,9 +339,7 @@ abstract class _FriendLoan implements FriendLoan {
   @override
   String get id;
   @override
-  String get shelfId;
-  @override
-  String get bookId;
+  String get accountId;
   @override
   String get contactId;
   @override

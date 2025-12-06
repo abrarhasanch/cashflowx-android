@@ -1,19 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../accounts/views/account_detail_screen.dart';
+import '../accounts/views/accounts_list_screen.dart';
 import '../auth/controllers/auth_controller.dart';
+import '../auth/views/forgot_password_screen.dart';
 import '../auth/views/login_screen.dart';
 import '../auth/views/signup_screen.dart';
 import '../auth/views/splash_screen.dart';
-import '../books/views/book_workspace_screen.dart';
-import '../books/views/books_screen.dart';
-import '../providers/firebase_providers.dart';
+import '../dashboard/views/dashboard_screen.dart';
+import '../due_dates/views/due_date_manager_screen.dart';
+import '../reports/views/reports_screen.dart';
 import '../settings/views/settings_screen.dart';
-import '../shelves/views/shelves_screen.dart';
+
+// Using authStateChangesProvider from auth_controller.dart
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateChangesProvider);
-  final auth = ref.watch(firebaseAuthProvider);
 
   return GoRouter(
     initialLocation: '/',
@@ -22,32 +25,66 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isLoading = authState.isLoading;
       final loggedIn = authState.valueOrNull != null;
       final goingToAuth = state.matchedLocation.startsWith('/auth');
+      
       if (isLoading) return null;
+      
       if (!loggedIn) {
         return goingToAuth ? null : '/auth/login';
       }
+      
       if (goingToAuth || state.matchedLocation == '/') {
-        return '/shelves';
+        return '/dashboard';
       }
+      
       return null;
     },
     routes: [
-      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
-      GoRoute(path: '/auth/login', builder: (context, state) => const LoginScreen()),
-      GoRoute(path: '/auth/signup', builder: (context, state) => const SignupScreen()),
-      GoRoute(path: '/shelves', builder: (context, state) => const ShelvesScreen()),
       GoRoute(
-        path: '/shelves/:shelfId/books',
-        builder: (context, state) => BooksScreen(shelfId: state.pathParameters['shelfId']!),
+        path: '/',
+        builder: (context, state) => const SplashScreen(),
+      ),
+      
+      // Auth routes
+      GoRoute(
+        path: '/auth/login',
+        builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
-        path: '/shelves/:shelfId/books/:bookId',
-        builder: (context, state) => BookWorkspaceScreen(
-          shelfId: state.pathParameters['shelfId']!,
-          bookId: state.pathParameters['bookId']!,
+        path: '/auth/signup',
+        builder: (context, state) => const SignupScreen(),
+      ),
+      GoRoute(
+        path: '/auth/forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      
+      // Main app routes
+      GoRoute(
+        path: '/dashboard',
+        builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: '/accounts',
+        builder: (context, state) => const AccountsListScreen(),
+      ),
+      GoRoute(
+        path: '/accounts/:accountId',
+        builder: (context, state) => AccountDetailScreen(
+          accountId: state.pathParameters['accountId']!,
         ),
       ),
-      GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
+      GoRoute(
+        path: '/due-dates',
+        builder: (context, state) => const DueDateManagerScreen(),
+      ),
+      GoRoute(
+        path: '/reports',
+        builder: (context, state) => const ReportsScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
     ],
   );
 });

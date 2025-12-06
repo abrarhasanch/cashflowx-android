@@ -1,13 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:uuid/uuid.dart';
 
-import '../models/book.dart';
+import '../models/account.dart';
 import '../models/contact.dart';
 import '../models/friend_loan.dart';
 import '../models/loan_event.dart';
 import '../models/member.dart';
-import '../models/shelf.dart';
 import '../models/transaction.dart';
 
 class FirestoreService {
@@ -15,204 +13,186 @@ class FirestoreService {
 
   final FirebaseFirestore _firestore;
   final FirebaseDynamicLinks _dynamicLinks;
-  final _uuid = const Uuid();
 
-  CollectionReference<Map<String, dynamic>> get _shelves => _firestore.collection('shelves');
+  // Collections
+  CollectionReference<Map<String, dynamic>> get _accounts => _firestore.collection('accounts');
 
-  CollectionReference<Map<String, dynamic>> _books(String shelfId) => _shelves.doc(shelfId).collection('books');
+  CollectionReference<Map<String, dynamic>> _transactions(String accountId) =>
+      _accounts.doc(accountId).collection('transactions');
 
-  CollectionReference<Map<String, dynamic>> _transactions(String shelfId, String bookId) =>
-      _books(shelfId).doc(bookId).collection('transactions');
+  CollectionReference<Map<String, dynamic>> _contacts(String accountId) =>
+      _accounts.doc(accountId).collection('contacts');
 
-  CollectionReference<Map<String, dynamic>> _contacts(String shelfId, String bookId) =>
-      _books(shelfId).doc(bookId).collection('contacts');
+  CollectionReference<Map<String, dynamic>> _loans(String accountId) =>
+      _accounts.doc(accountId).collection('loans');
 
-  CollectionReference<Map<String, dynamic>> _loanPairs(String shelfId, String bookId) =>
-      _books(shelfId).doc(bookId).collection('friends_loans');
+  DocumentReference<Map<String, dynamic>> _loanDoc(String accountId, String loanId) =>
+      _loans(accountId).doc(loanId);
 
-  DocumentReference<Map<String, dynamic>> _loanDoc(String shelfId, String bookId, String loanId) =>
-      _loanPairs(shelfId, bookId).doc(loanId);
+  // ==================== ACCOUNT METHODS ====================
 
-  Future<Shelf> createShelf(Shelf shelf) async {
-    final doc = _shelves.doc();
-    final payload = shelf.copyWith(id: doc.id);
-    // Convert to JSON and ensure members are properly serialized
+  Future<Account> createAccount(Account account) async {
+    final doc = _accounts.doc();
+    final payload = account.copyWith(id: doc.id);
     final json = payload.toJson();
     json['members'] = payload.members.map((m) => m.toJson()).toList();
     await doc.set(json);
     return payload;
   }
 
-  Future<void> updateShelf(Shelf shelf) {
-    // Convert to JSON and ensure members are properly serialized
-    final json = shelf.toJson();
-    json['members'] = shelf.members.map((m) => m.toJson()).toList();
-    return _shelves.doc(shelf.id).update(json);
+  Future<void> updateAccount(Account account) {
+    final json = account.toJson();
+    json['members'] = account.members.map((m) => m.toJson()).toList();
+    return _accounts.doc(account.id).update(json);
   }
 
-  Future<void> deleteShelf(String shelfId) async {
-    await _shelves.doc(shelfId).delete();
+  Future<void> deleteAccount(String accountId) async {
+    await _accounts.doc(accountId).delete();
   }
 
-  Stream<List<Shelf>> watchShelvesForUser(String uid) {
-    return _shelves.where('memberUids', arrayContains: uid).snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => Shelf.fromJson({...doc.data(), 'id': doc.id})).toList();
+  Stream<List<Account>> watchAccountsForUser(String uid) {
+    return _accounts.where('memberUids', arrayContains: uid).snapshots().map((snapshot) {
+      final accounts = snapshot.docs.map((doc) => Account.fromJson({...doc.data(), 'id': doc.id})).toList();
+      // Sort in memory to avoid composite index requirement
+      accounts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return accounts;
     });
   }
 
-  Future<Book> createBook(Book book) async {
-    final doc = _books(book.shelfId).doc();
-    final payload = book.copyWith(id: doc.id);
-    // Convert to JSON and ensure members are properly serialized
-    final json = payload.toJson();
-    json['members'] = payload.members.map((m) => m.toJson()).toList();
-    await doc.set(json);
-    return payload;
-  }
-
-  Future<void> updateBook(Book book) {
-    // Convert to JSON and ensure members are properly serialized
-    final json = book.toJson();
-    json['members'] = book.members.map((m) => m.toJson()).toList();
-    return _books(book.shelfId).doc(book.id).update(json);
-  }
-
-  Future<void> deleteBook({required String shelfId, required String bookId}) {
-    return _books(shelfId).doc(bookId).delete();
-  }
-
-  Stream<List<Book>> watchBooks(String shelfId) {
-    return _books(shelfId).orderBy('createdAt', descending: true).snapshots().map(
-          (snapshot) => snapshot.docs.map((doc) => Book.fromJson({...doc.data(), 'id': doc.id})).toList(),
-        );
-  }
-
-  Stream<Book?> watchBook({required String shelfId, required String bookId}) {
-    if (shelfId.isEmpty || bookId.isEmpty) {
-      return const Stream<Book?>.empty();
-    }
-    return _books(shelfId).doc(bookId).snapshots().map((snapshot) {
+  Stream<Account?> watchAccount(String accountId) {
+    if (accountId.isEmpty) return const Stream<Account?>.empty();
+    return _accounts.doc(accountId).snapshots().map((snapshot) {
       final data = snapshot.data();
-      if (data == null) {
-        return null;
-      }
-      return Book.fromJson({...data, 'id': snapshot.id});
+      if (data == null) return null;
+      return Account.fromJson({...data, 'id': snapshot.id});
     });
   }
 
-  Stream<List<BookTransaction>> watchTransactions({required String shelfId, required String bookId}) {
-    return _transactions(shelfId, bookId)
+  // ==================== TRANSACTION METHODS ====================
+
+  Stream<List<AccountTransaction>> watchTransactions(String accountId) {
+    return _transactions(accountId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => BookTransaction.fromJson({...doc.data(), 'id': doc.id})).toList());
+        .map((snapshot) => snapshot.docs.map((doc) => AccountTransaction.fromJson({...doc.data(), 'id': doc.id})).toList());
   }
 
-  Future<void> addTransaction(BookTransaction transaction) {
-    final doc = _transactions(transaction.shelfId, transaction.bookId).doc();
-    return doc.set(transaction.copyWith(id: doc.id).toJson());
+  Stream<List<AccountTransaction>> watchPendingTransactions(String accountId) {
+    return _transactions(accountId)
+        .where('dueDate', isNotEqualTo: null)
+        .where('isPaid', isEqualTo: false)
+        .orderBy('dueDate')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => AccountTransaction.fromJson({...doc.data(), 'id': doc.id})).toList());
   }
 
-  Future<void> deleteTransaction({required String shelfId, required String bookId, required String transactionId}) {
-    return _transactions(shelfId, bookId).doc(transactionId).delete();
+  Stream<List<AccountTransaction>> watchOverdueTransactions(String accountId) {
+    final now = DateTime.now();
+    return _transactions(accountId)
+        .where('isPaid', isEqualTo: false)
+        .where('dueDate', isLessThan: now)
+        .orderBy('dueDate')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => AccountTransaction.fromJson({...doc.data(), 'id': doc.id})).toList());
   }
 
-  Stream<List<Contact>> watchContacts({required String shelfId, required String bookId}) {
-    return _contacts(shelfId, bookId)
+  Future<void> addTransaction(AccountTransaction transaction) async {
+    final doc = _transactions(transaction.accountId).doc();
+    final payload = transaction.copyWith(id: doc.id);
+    await doc.set(payload.toJson());
+
+    // Update account totals
+    final accountRef = _accounts.doc(transaction.accountId);
+    await _firestore.runTransaction((txn) async {
+      final accountDoc = await txn.get(accountRef);
+      if (!accountDoc.exists) return;
+
+      final data = accountDoc.data()!;
+      final totalIn = (data['totalIn'] ?? 0.0) + (transaction.type == TransactionType.cashIn ? transaction.amount : 0);
+      final totalOut = (data['totalOut'] ?? 0.0) + (transaction.type == TransactionType.cashOut ? transaction.amount : 0);
+
+      txn.update(accountRef, {'totalIn': totalIn, 'totalOut': totalOut});
+    });
+  }
+
+  Future<void> updateTransaction(AccountTransaction transaction) {
+    return _transactions(transaction.accountId).doc(transaction.id).update(transaction.toJson());
+  }
+
+  Future<void> markTransactionAsPaid(String accountId, String transactionId) {
+    return _transactions(accountId).doc(transactionId).update({
+      'isPaid': true,
+      'paidAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> deleteTransaction(String accountId, String transactionId) {
+    return _transactions(accountId).doc(transactionId).delete();
+  }
+
+  // ==================== CONTACT METHODS ====================
+
+  Stream<List<Contact>> watchContacts(String accountId) {
+    return _contacts(accountId)
         .orderBy('name')
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => Contact.fromJson({...doc.data(), 'id': doc.id})).toList());
   }
 
   Future<void> upsertContact(Contact contact) {
-    final collection = _contacts(contact.shelfId, contact.bookId);
+    final collection = _contacts(contact.accountId);
     final doc = contact.id.isEmpty ? collection.doc() : collection.doc(contact.id);
     final payload = contact.copyWith(id: doc.id);
     return doc.set(payload.toJson());
   }
 
-  Future<void> deleteContact({required String shelfId, required String bookId, required String contactId}) {
-    return _contacts(shelfId, bookId).doc(contactId).delete();
+  Future<void> deleteContact(String accountId, String contactId) {
+    return _contacts(accountId).doc(contactId).delete();
   }
 
-  Stream<List<FriendLoan>> watchLoans({required String shelfId, required String bookId}) {
-    return _loanPairs(shelfId, bookId)
+  // ==================== LOAN METHODS ====================
+
+  Stream<List<FriendLoan>> watchLoans(String accountId) {
+    return _loans(accountId)
         .orderBy('updatedAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => FriendLoan.fromJson({...doc.data(), 'id': doc.id})).toList());
   }
 
   Future<FriendLoan> createLoan(FriendLoan loan) async {
-    final doc = _loanPairs(loan.shelfId, loan.bookId).doc();
-    final payload = loan.copyWith(id: doc.id, createdAt: loan.createdAt ?? DateTime.now(), updatedAt: DateTime.now());
+    final doc = _loans(loan.accountId).doc();
+    final payload = loan.copyWith(
+      id: doc.id,
+      createdAt: loan.createdAt ?? DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
     await doc.set(payload.toJson());
     return payload;
   }
 
-  Stream<List<LoanEvent>> watchLoanEvents({required String shelfId, required String bookId, required String loanId}) {
-    return _loanDoc(shelfId, bookId, loanId)
+  Stream<List<LoanEvent>> watchLoanEvents(String accountId, String loanId) {
+    return _loanDoc(accountId, loanId)
         .collection('events')
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => LoanEvent.fromJson({...doc.data(), 'id': doc.id})).toList());
   }
 
-  Future<void> addLoanEvent({
-    required String shelfId,
-    required String bookId,
-    required String loanId,
-    required LoanEvent event,
-  }) async {
-    final loanRef = _loanDoc(shelfId, bookId, loanId);
+  Future<void> addLoanEvent(String accountId, String loanId, LoanEvent event) async {
+    final loanRef = _loanDoc(accountId, loanId);
     final eventRef = loanRef.collection('events').doc();
     await eventRef.set(event.copyWith(id: eventRef.id).toJson());
     await _updateLoanTotals(loanRef, event);
   }
 
-  Future<void> settleLoan({required String shelfId, required String bookId, required String loanId}) async {
-    final loanRef = _loanDoc(shelfId, bookId, loanId);
-    await loanRef.update({'net': 0, 'totalYouGave': 0, 'totalYouTook': 0, 'updatedAt': FieldValue.serverTimestamp()});
-  }
-
-  Future<void> addMemberToBook({
-    required String shelfId,
-    required String bookId,
-    required ShelfMember member,
-  }) {
-    final doc = _books(shelfId).doc(bookId);
-    return doc.update({
-      'members': FieldValue.arrayUnion([member.toJson()]),
-      'memberUids': FieldValue.arrayUnion([member.uid]),
+  Future<void> settleLoan(String accountId, String loanId) async {
+    final loanRef = _loanDoc(accountId, loanId);
+    await loanRef.update({
+      'net': 0,
+      'totalYouGave': 0,
+      'totalYouTook': 0,
+      'updatedAt': FieldValue.serverTimestamp(),
     });
-  }
-
-  Future<void> removeMember({required String shelfId, required String bookId, required String uid}) {
-    final doc = _books(shelfId).doc(bookId);
-    return _firestore.runTransaction((transaction) async {
-      final snapshot = await transaction.get(doc);
-      final data = snapshot.data() ?? {};
-        final members = (data['members'] as List<dynamic>? ?? [])
-          .map((m) => ShelfMember.fromJson(Map<String, dynamic>.from(m as Map<dynamic, dynamic>)))
-          .where((member) => member.uid != uid)
-          .map((member) => member.toJson())
-          .toList();
-      final memberUids = (data['memberUids'] as List<dynamic>? ?? []).where((id) => id != uid).toList();
-      transaction.update(doc, {
-        'members': members,
-        'memberUids': memberUids,
-      });
-    });
-  }
-
-  Future<String> generateInviteLink({required String shelfId, required String bookId}) async {
-    final link = await _dynamicLinks.buildLink(
-      DynamicLinkParameters(
-        link: Uri.parse('https://cashflowx.app.link/invite?shelf=$shelfId&book=$bookId'),
-        uriPrefix: 'https://cashflowx.app.link',
-        androidParameters: const AndroidParameters(packageName: 'com.abrar.cashflowx'),
-        iosParameters: const IOSParameters(bundleId: 'com.abrar.cashflowx'),
-      ),
-    );
-    return link.toString();
   }
 
   Future<void> _updateLoanTotals(DocumentReference<Map<String, dynamic>> loanRef, LoanEvent event) {
@@ -237,6 +217,7 @@ class FirestoreService {
           totalYouTook = 0;
           break;
       }
+
       final net = totalYouGave - totalYouTook;
       transaction.update(loanRef, {
         'totalYouGave': totalYouGave,
@@ -245,5 +226,61 @@ class FirestoreService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     });
+  }
+
+  // ==================== MEMBER METHODS ====================
+
+  Future<void> addMember(String accountId, String memberUid, MemberRole role) {
+    final doc = _accounts.doc(accountId);
+    return doc.update({
+      'members': FieldValue.arrayUnion([AccountMember(uid: memberUid, role: role).toJson()]),
+      'memberUids': FieldValue.arrayUnion([memberUid]),
+    });
+  }
+
+  Future<void> removeMember(String accountId, String memberUid) {
+    final doc = _accounts.doc(accountId);
+    return _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(doc);
+      final data = snapshot.data() ?? {};
+      final members = (data['members'] as List<dynamic>? ?? [])
+          .map((m) => AccountMember.fromJson(Map<String, dynamic>.from(m as Map<dynamic, dynamic>)))
+          .where((member) => member.uid != memberUid)
+          .map((member) => member.toJson())
+          .toList();
+      final memberUids = (data['memberUids'] as List<dynamic>? ?? []).where((id) => id != memberUid).toList();
+      transaction.update(doc, {
+        'members': members,
+        'memberUids': memberUids,
+      });
+    });
+  }
+
+  Future<void> updateMemberRole(String accountId, String memberUid, MemberRole newRole) {
+    final doc = _accounts.doc(accountId);
+    return _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(doc);
+      final data = snapshot.data() ?? {};
+      final members = (data['members'] as List<dynamic>? ?? [])
+          .map((m) => AccountMember.fromJson(Map<String, dynamic>.from(m as Map<dynamic, dynamic>)))
+          .map((member) => member.uid == memberUid ? member.copyWith(role: newRole) : member)
+          .map((member) => member.toJson())
+          .toList();
+      transaction.update(doc, {'members': members});
+    });
+  }
+
+  // ==================== INVITE LINK ====================
+
+  Future<String> generateInviteLink(String accountId) async {
+    final link = await _dynamicLinks.buildLink(
+      DynamicLinkParameters(
+        link: Uri.parse('https://cashflowx.app.link/invite?account=$accountId'),
+        uriPrefix: 'https://cashflowx.app.link',
+        androidParameters: const AndroidParameters(packageName: 'com.abrar.cashflowx'),
+        iosParameters: const IOSParameters(bundleId: 'com.abrar.cashflowx'),
+      ),
+    );
+    return link.toString();
   }
 }

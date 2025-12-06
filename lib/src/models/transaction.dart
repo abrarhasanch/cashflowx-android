@@ -12,11 +12,10 @@ enum TransactionType {
 }
 
 @freezed
-class BookTransaction with _$BookTransaction {
-  const factory BookTransaction({
+class AccountTransaction with _$AccountTransaction {
+  const factory AccountTransaction({
     required String id,
-    required String shelfId,
-    required String bookId,
+    required String accountId,
     required double amount,
     required TransactionType type,
     @TimestampConverterNonNull() required DateTime createdAt,
@@ -25,7 +24,14 @@ class BookTransaction with _$BookTransaction {
     String? category,
     String? paymentMode,
     String? contactId,
-  }) = _BookTransaction;
+    @TimestampConverter() DateTime? dueDate,
+    @Default(false) bool isPaid,
+    @TimestampConverter() DateTime? paidAt,
+  }) = _AccountTransaction;
 
-  factory BookTransaction.fromJson(Map<String, dynamic> json) => _$BookTransactionFromJson(json);
+  factory AccountTransaction.fromJson(Map<String, dynamic> json) => _$AccountTransactionFromJson(json);
 }
+
+// Aliases for consistency with flow diagram
+typedef CashEntry = AccountTransaction;
+typedef BookTransaction = AccountTransaction; // Backward compatibility

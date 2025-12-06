@@ -1,59 +1,95 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/friend_loan.dart';
 import '../models/loan_event.dart';
 import '../services/firestore_service.dart';
 import 'firestore_service_provider.dart';
+import 'firebase_providers.dart';
 
-final loansProvider = StreamProvider.autoDispose.family<List<FriendLoan>, (String shelfId, String bookId)>((ref, key) {
-  final (shelfId, bookId) = key;
-  if (shelfId.isEmpty || bookId.isEmpty) {
-    return Stream<List<FriendLoan>>.empty();
-  }
-  return ref.watch(firestoreServiceProvider).watchLoans(shelfId: shelfId, bookId: bookId);
+/// Stream all loans for a specific account
+final loansProvider = StreamProvider.family<List<FriendLoan>, String>((ref, accountId) {
+  if (accountId.isEmpty) return const Stream.empty();
+  final service = ref.watch(firestoreServiceProvider);
+  return service.watchLoans(accountId);
 });
 
-final loanEventsProvider = StreamProvider.autoDispose.family<List<LoanEvent>, (String shelfId, String bookId, String loanId)>((ref, key) {
-  final (shelfId, bookId, loanId) = key;
-  if (shelfId.isEmpty || bookId.isEmpty || loanId.isEmpty) {
-    return Stream<List<LoanEvent>>.empty();
-  }
-  return ref.watch(firestoreServiceProvider).watchLoanEvents(shelfId: shelfId, bookId: bookId, loanId: loanId);
+/// Stream loan events for a specific loan
+final loanEventsProvider = StreamProvider.family<List<LoanEvent>, ({String accountId, String loanId})>((ref, params) {
+  if (params.accountId.isEmpty || params.loanId.isEmpty) return const Stream.empty();
+  final service = ref.watch(firestoreServiceProvider);
+  return service.watchLoanEvents(params.accountId, params.loanId);
 });
 
+/// Controller for loan operations
 final loanControllerProvider = StateNotifierProvider<LoanController, AsyncValue<void>>((ref) {
-  return LoanController(ref.watch(firestoreServiceProvider));
+  return LoanController(ref.watch(firestoreServiceProvider), ref.watch(firebaseAuthProvider));
 });
 
 class LoanController extends StateNotifier<AsyncValue<void>> {
-  LoanController(this._service) : super(const AsyncData(null));
+  LoanController(this._service, this._auth) : super(const AsyncData(null));
 
   final FirestoreService _service;
+  final _auth;
+
+  Future<FriendLoan?> createLoan(String accountId, String contactId) async {
+    state = const AsyncLoading();
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('No user logged in');
+
+      final loan = FriendLoan(
+        id: '',
+        accountId: accountId,
+        contactId: contactId,
+        createdByUid: user.uid,
+      );
+
+      final created = await _service.createLoan(loan);
+      state = const AsyncData(null);
+      return created;
+    } catch (e, stack) {
+      state = AsyncError(e, stack);
+      return null;
+    }
+  }
 
   Future<void> addLoanEvent({
-    required String shelfId,
-    required String bookId,
+    required String accountId,
     required String loanId,
-    required LoanEvent event,
+    required LoanEventType type,
+    required double amount,
+    String? note,
   }) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.addLoanEvent(
-          shelfId: shelfId,
-          bookId: bookId,
-          loanId: loanId,
-          event: event,
-        ));
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('No user logged in');
+
+      final event = LoanEvent(
+        id: '',
+        loanId: loanId,
+        accountId: accountId,
+        type: type,
+        amount: amount,
+        createdAt: DateTime.now(),
+        createdByUid: user.uid,
+        note: note,
+      );
+
+      await _service.addLoanEvent(accountId, loanId, event);
+      state = const AsyncData(null);
+    } catch (e, stack) {
+      state = AsyncError(e, stack);
+    }
   }
 
-  Future<void> settleLoan({required String shelfId, required String bookId, required String loanId}) async {
+  Future<void> settleLoan(String accountId, String loanId) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.settleLoan(shelfId: shelfId, bookId: bookId, loanId: loanId));
-  }
-
-  Future<void> createLoan({required FriendLoan loan}) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.createLoan(loan));
+    try {
+      await _service.settleLoan(accountId, loanId);
+      state = const AsyncData(null);
+    } catch (e, stack) {
+      state = AsyncError(e, stack);
+    }
   }
 }

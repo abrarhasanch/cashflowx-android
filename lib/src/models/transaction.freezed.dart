@@ -15,15 +15,14 @@ final _privateConstructorUsedError = UnsupportedError(
   'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
 );
 
-BookTransaction _$BookTransactionFromJson(Map<String, dynamic> json) {
-  return _BookTransaction.fromJson(json);
+AccountTransaction _$AccountTransactionFromJson(Map<String, dynamic> json) {
+  return _AccountTransaction.fromJson(json);
 }
 
 /// @nodoc
-mixin _$BookTransaction {
+mixin _$AccountTransaction {
   String get id => throw _privateConstructorUsedError;
-  String get shelfId => throw _privateConstructorUsedError;
-  String get bookId => throw _privateConstructorUsedError;
+  String get accountId => throw _privateConstructorUsedError;
   double get amount => throw _privateConstructorUsedError;
   TransactionType get type => throw _privateConstructorUsedError;
   @TimestampConverterNonNull()
@@ -33,28 +32,32 @@ mixin _$BookTransaction {
   String? get category => throw _privateConstructorUsedError;
   String? get paymentMode => throw _privateConstructorUsedError;
   String? get contactId => throw _privateConstructorUsedError;
+  @TimestampConverter()
+  DateTime? get dueDate => throw _privateConstructorUsedError;
+  bool get isPaid => throw _privateConstructorUsedError;
+  @TimestampConverter()
+  DateTime? get paidAt => throw _privateConstructorUsedError;
 
-  /// Serializes this BookTransaction to a JSON map.
+  /// Serializes this AccountTransaction to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of BookTransaction
+  /// Create a copy of AccountTransaction
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $BookTransactionCopyWith<BookTransaction> get copyWith =>
+  $AccountTransactionCopyWith<AccountTransaction> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $BookTransactionCopyWith<$Res> {
-  factory $BookTransactionCopyWith(
-    BookTransaction value,
-    $Res Function(BookTransaction) then,
-  ) = _$BookTransactionCopyWithImpl<$Res, BookTransaction>;
+abstract class $AccountTransactionCopyWith<$Res> {
+  factory $AccountTransactionCopyWith(
+    AccountTransaction value,
+    $Res Function(AccountTransaction) then,
+  ) = _$AccountTransactionCopyWithImpl<$Res, AccountTransaction>;
   @useResult
   $Res call({
     String id,
-    String shelfId,
-    String bookId,
+    String accountId,
     double amount,
     TransactionType type,
     @TimestampConverterNonNull() DateTime createdAt,
@@ -63,27 +66,29 @@ abstract class $BookTransactionCopyWith<$Res> {
     String? category,
     String? paymentMode,
     String? contactId,
+    @TimestampConverter() DateTime? dueDate,
+    bool isPaid,
+    @TimestampConverter() DateTime? paidAt,
   });
 }
 
 /// @nodoc
-class _$BookTransactionCopyWithImpl<$Res, $Val extends BookTransaction>
-    implements $BookTransactionCopyWith<$Res> {
-  _$BookTransactionCopyWithImpl(this._value, this._then);
+class _$AccountTransactionCopyWithImpl<$Res, $Val extends AccountTransaction>
+    implements $AccountTransactionCopyWith<$Res> {
+  _$AccountTransactionCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of BookTransaction
+  /// Create a copy of AccountTransaction
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? id = null,
-    Object? shelfId = null,
-    Object? bookId = null,
+    Object? accountId = null,
     Object? amount = null,
     Object? type = null,
     Object? createdAt = null,
@@ -92,6 +97,9 @@ class _$BookTransactionCopyWithImpl<$Res, $Val extends BookTransaction>
     Object? category = freezed,
     Object? paymentMode = freezed,
     Object? contactId = freezed,
+    Object? dueDate = freezed,
+    Object? isPaid = null,
+    Object? paidAt = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -99,13 +107,9 @@ class _$BookTransactionCopyWithImpl<$Res, $Val extends BookTransaction>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as String,
-            shelfId: null == shelfId
-                ? _value.shelfId
-                : shelfId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            bookId: null == bookId
-                ? _value.bookId
-                : bookId // ignore: cast_nullable_to_non_nullable
+            accountId: null == accountId
+                ? _value.accountId
+                : accountId // ignore: cast_nullable_to_non_nullable
                       as String,
             amount: null == amount
                 ? _value.amount
@@ -139,6 +143,18 @@ class _$BookTransactionCopyWithImpl<$Res, $Val extends BookTransaction>
                 ? _value.contactId
                 : contactId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            dueDate: freezed == dueDate
+                ? _value.dueDate
+                : dueDate // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            isPaid: null == isPaid
+                ? _value.isPaid
+                : isPaid // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            paidAt: freezed == paidAt
+                ? _value.paidAt
+                : paidAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
           )
           as $Val,
     );
@@ -146,18 +162,17 @@ class _$BookTransactionCopyWithImpl<$Res, $Val extends BookTransaction>
 }
 
 /// @nodoc
-abstract class _$$BookTransactionImplCopyWith<$Res>
-    implements $BookTransactionCopyWith<$Res> {
-  factory _$$BookTransactionImplCopyWith(
-    _$BookTransactionImpl value,
-    $Res Function(_$BookTransactionImpl) then,
-  ) = __$$BookTransactionImplCopyWithImpl<$Res>;
+abstract class _$$AccountTransactionImplCopyWith<$Res>
+    implements $AccountTransactionCopyWith<$Res> {
+  factory _$$AccountTransactionImplCopyWith(
+    _$AccountTransactionImpl value,
+    $Res Function(_$AccountTransactionImpl) then,
+  ) = __$$AccountTransactionImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({
     String id,
-    String shelfId,
-    String bookId,
+    String accountId,
     double amount,
     TransactionType type,
     @TimestampConverterNonNull() DateTime createdAt,
@@ -166,26 +181,28 @@ abstract class _$$BookTransactionImplCopyWith<$Res>
     String? category,
     String? paymentMode,
     String? contactId,
+    @TimestampConverter() DateTime? dueDate,
+    bool isPaid,
+    @TimestampConverter() DateTime? paidAt,
   });
 }
 
 /// @nodoc
-class __$$BookTransactionImplCopyWithImpl<$Res>
-    extends _$BookTransactionCopyWithImpl<$Res, _$BookTransactionImpl>
-    implements _$$BookTransactionImplCopyWith<$Res> {
-  __$$BookTransactionImplCopyWithImpl(
-    _$BookTransactionImpl _value,
-    $Res Function(_$BookTransactionImpl) _then,
+class __$$AccountTransactionImplCopyWithImpl<$Res>
+    extends _$AccountTransactionCopyWithImpl<$Res, _$AccountTransactionImpl>
+    implements _$$AccountTransactionImplCopyWith<$Res> {
+  __$$AccountTransactionImplCopyWithImpl(
+    _$AccountTransactionImpl _value,
+    $Res Function(_$AccountTransactionImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of BookTransaction
+  /// Create a copy of AccountTransaction
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? id = null,
-    Object? shelfId = null,
-    Object? bookId = null,
+    Object? accountId = null,
     Object? amount = null,
     Object? type = null,
     Object? createdAt = null,
@@ -194,20 +211,19 @@ class __$$BookTransactionImplCopyWithImpl<$Res>
     Object? category = freezed,
     Object? paymentMode = freezed,
     Object? contactId = freezed,
+    Object? dueDate = freezed,
+    Object? isPaid = null,
+    Object? paidAt = freezed,
   }) {
     return _then(
-      _$BookTransactionImpl(
+      _$AccountTransactionImpl(
         id: null == id
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as String,
-        shelfId: null == shelfId
-            ? _value.shelfId
-            : shelfId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        bookId: null == bookId
-            ? _value.bookId
-            : bookId // ignore: cast_nullable_to_non_nullable
+        accountId: null == accountId
+            ? _value.accountId
+            : accountId // ignore: cast_nullable_to_non_nullable
                   as String,
         amount: null == amount
             ? _value.amount
@@ -241,6 +257,18 @@ class __$$BookTransactionImplCopyWithImpl<$Res>
             ? _value.contactId
             : contactId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        dueDate: freezed == dueDate
+            ? _value.dueDate
+            : dueDate // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        isPaid: null == isPaid
+            ? _value.isPaid
+            : isPaid // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        paidAt: freezed == paidAt
+            ? _value.paidAt
+            : paidAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
       ),
     );
   }
@@ -248,11 +276,10 @@ class __$$BookTransactionImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$BookTransactionImpl implements _BookTransaction {
-  const _$BookTransactionImpl({
+class _$AccountTransactionImpl implements _AccountTransaction {
+  const _$AccountTransactionImpl({
     required this.id,
-    required this.shelfId,
-    required this.bookId,
+    required this.accountId,
     required this.amount,
     required this.type,
     @TimestampConverterNonNull() required this.createdAt,
@@ -261,17 +288,18 @@ class _$BookTransactionImpl implements _BookTransaction {
     this.category,
     this.paymentMode,
     this.contactId,
+    @TimestampConverter() this.dueDate,
+    this.isPaid = false,
+    @TimestampConverter() this.paidAt,
   });
 
-  factory _$BookTransactionImpl.fromJson(Map<String, dynamic> json) =>
-      _$$BookTransactionImplFromJson(json);
+  factory _$AccountTransactionImpl.fromJson(Map<String, dynamic> json) =>
+      _$$AccountTransactionImplFromJson(json);
 
   @override
   final String id;
   @override
-  final String shelfId;
-  @override
-  final String bookId;
+  final String accountId;
   @override
   final double amount;
   @override
@@ -289,20 +317,29 @@ class _$BookTransactionImpl implements _BookTransaction {
   final String? paymentMode;
   @override
   final String? contactId;
+  @override
+  @TimestampConverter()
+  final DateTime? dueDate;
+  @override
+  @JsonKey()
+  final bool isPaid;
+  @override
+  @TimestampConverter()
+  final DateTime? paidAt;
 
   @override
   String toString() {
-    return 'BookTransaction(id: $id, shelfId: $shelfId, bookId: $bookId, amount: $amount, type: $type, createdAt: $createdAt, createdByUid: $createdByUid, remark: $remark, category: $category, paymentMode: $paymentMode, contactId: $contactId)';
+    return 'AccountTransaction(id: $id, accountId: $accountId, amount: $amount, type: $type, createdAt: $createdAt, createdByUid: $createdByUid, remark: $remark, category: $category, paymentMode: $paymentMode, contactId: $contactId, dueDate: $dueDate, isPaid: $isPaid, paidAt: $paidAt)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$BookTransactionImpl &&
+            other is _$AccountTransactionImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.shelfId, shelfId) || other.shelfId == shelfId) &&
-            (identical(other.bookId, bookId) || other.bookId == bookId) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
             (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.createdAt, createdAt) ||
@@ -315,7 +352,10 @@ class _$BookTransactionImpl implements _BookTransaction {
             (identical(other.paymentMode, paymentMode) ||
                 other.paymentMode == paymentMode) &&
             (identical(other.contactId, contactId) ||
-                other.contactId == contactId));
+                other.contactId == contactId) &&
+            (identical(other.dueDate, dueDate) || other.dueDate == dueDate) &&
+            (identical(other.isPaid, isPaid) || other.isPaid == isPaid) &&
+            (identical(other.paidAt, paidAt) || other.paidAt == paidAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -323,8 +363,7 @@ class _$BookTransactionImpl implements _BookTransaction {
   int get hashCode => Object.hash(
     runtimeType,
     id,
-    shelfId,
-    bookId,
+    accountId,
     amount,
     type,
     createdAt,
@@ -333,30 +372,32 @@ class _$BookTransactionImpl implements _BookTransaction {
     category,
     paymentMode,
     contactId,
+    dueDate,
+    isPaid,
+    paidAt,
   );
 
-  /// Create a copy of BookTransaction
+  /// Create a copy of AccountTransaction
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$BookTransactionImplCopyWith<_$BookTransactionImpl> get copyWith =>
-      __$$BookTransactionImplCopyWithImpl<_$BookTransactionImpl>(
+  _$$AccountTransactionImplCopyWith<_$AccountTransactionImpl> get copyWith =>
+      __$$AccountTransactionImplCopyWithImpl<_$AccountTransactionImpl>(
         this,
         _$identity,
       );
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$BookTransactionImplToJson(this);
+    return _$$AccountTransactionImplToJson(this);
   }
 }
 
-abstract class _BookTransaction implements BookTransaction {
-  const factory _BookTransaction({
+abstract class _AccountTransaction implements AccountTransaction {
+  const factory _AccountTransaction({
     required final String id,
-    required final String shelfId,
-    required final String bookId,
+    required final String accountId,
     required final double amount,
     required final TransactionType type,
     @TimestampConverterNonNull() required final DateTime createdAt,
@@ -365,17 +406,18 @@ abstract class _BookTransaction implements BookTransaction {
     final String? category,
     final String? paymentMode,
     final String? contactId,
-  }) = _$BookTransactionImpl;
+    @TimestampConverter() final DateTime? dueDate,
+    final bool isPaid,
+    @TimestampConverter() final DateTime? paidAt,
+  }) = _$AccountTransactionImpl;
 
-  factory _BookTransaction.fromJson(Map<String, dynamic> json) =
-      _$BookTransactionImpl.fromJson;
+  factory _AccountTransaction.fromJson(Map<String, dynamic> json) =
+      _$AccountTransactionImpl.fromJson;
 
   @override
   String get id;
   @override
-  String get shelfId;
-  @override
-  String get bookId;
+  String get accountId;
   @override
   double get amount;
   @override
@@ -393,11 +435,19 @@ abstract class _BookTransaction implements BookTransaction {
   String? get paymentMode;
   @override
   String? get contactId;
+  @override
+  @TimestampConverter()
+  DateTime? get dueDate;
+  @override
+  bool get isPaid;
+  @override
+  @TimestampConverter()
+  DateTime? get paidAt;
 
-  /// Create a copy of BookTransaction
+  /// Create a copy of AccountTransaction
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$BookTransactionImplCopyWith<_$BookTransactionImpl> get copyWith =>
+  _$$AccountTransactionImplCopyWith<_$AccountTransactionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

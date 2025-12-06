@@ -1,19 +1,17 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/contact.dart';
 import '../services/firestore_service.dart';
 import 'firestore_service_provider.dart';
 
-final contactsProvider = StreamProvider.autoDispose.family<List<Contact>, (String shelfId, String bookId)>((ref, key) {
-  final (shelfId, bookId) = key;
-  if (shelfId.isEmpty || bookId.isEmpty) {
-    return Stream<List<Contact>>.empty();
-  }
-  return ref.watch(firestoreServiceProvider).watchContacts(shelfId: shelfId, bookId: bookId);
+/// Stream all contacts for a specific account
+final contactsProvider = StreamProvider.family<List<Contact>, String>((ref, accountId) {
+  if (accountId.isEmpty) return const Stream.empty();
+  final service = ref.watch(firestoreServiceProvider);
+  return service.watchContacts(accountId);
 });
 
+/// Controller for contact operations
 final contactControllerProvider = StateNotifierProvider<ContactController, AsyncValue<void>>((ref) {
   return ContactController(ref.watch(firestoreServiceProvider));
 });
@@ -23,13 +21,23 @@ class ContactController extends StateNotifier<AsyncValue<void>> {
 
   final FirestoreService _service;
 
-  Future<void> upsert(Contact contact) async {
+  Future<void> upsertContact(Contact contact) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.upsertContact(contact));
+    try {
+      await _service.upsertContact(contact);
+      state = const AsyncData(null);
+    } catch (e, stack) {
+      state = AsyncError(e, stack);
+    }
   }
 
-  Future<void> delete(String shelfId, String bookId, String contactId) async {
+  Future<void> deleteContact(String accountId, String contactId) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.deleteContact(shelfId: shelfId, bookId: bookId, contactId: contactId));
+    try {
+      await _service.deleteContact(accountId, contactId);
+      state = const AsyncData(null);
+    } catch (e, stack) {
+      state = AsyncError(e, stack);
+    }
   }
 }

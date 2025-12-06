@@ -10,8 +10,7 @@ _$LoanEventImpl _$$LoanEventImplFromJson(Map<String, dynamic> json) =>
     _$LoanEventImpl(
       id: json['id'] as String,
       loanId: json['loanId'] as String,
-      shelfId: json['shelfId'] as String,
-      bookId: json['bookId'] as String,
+      accountId: json['accountId'] as String,
       type: $enumDecode(_$LoanEventTypeEnumMap, json['type']),
       amount: (json['amount'] as num).toDouble(),
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
@@ -23,8 +22,7 @@ Map<String, dynamic> _$$LoanEventImplToJson(_$LoanEventImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'loanId': instance.loanId,
-      'shelfId': instance.shelfId,
-      'bookId': instance.bookId,
+      'accountId': instance.accountId,
       'type': _$LoanEventTypeEnumMap[instance.type]!,
       'amount': instance.amount,
       'createdAt': const TimestampConverter().toJson(instance.createdAt),

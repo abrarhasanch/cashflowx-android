@@ -9,8 +9,7 @@ part 'contact.g.dart';
 class Contact with _$Contact {
   const factory Contact({
     required String id,
-    required String shelfId,
-    required String bookId,
+    required String accountId,
     required String name,
     String? phone,
     String? email,

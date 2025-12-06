@@ -2,90 +2,86 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/transaction.dart';
 import '../services/firestore_service.dart';
-import '../transactions/services/transaction_exporter.dart';
 import 'firestore_service_provider.dart';
+import 'firebase_providers.dart';
 
-class TransactionFilter {
-  const TransactionFilter({
-    this.type,
-    this.memberUid,
-    this.category,
-    this.paymentMode,
-    this.startDate,
-    this.endDate,
-  });
-
-  final TransactionType? type;
-  final String? memberUid;
-  final String? category;
-  final String? paymentMode;
-  final DateTime? startDate;
-  final DateTime? endDate;
-
-  bool matches(BookTransaction transaction) {
-    final matchType = type == null || transaction.type == type;
-    final matchMember = memberUid == null || transaction.createdByUid == memberUid;
-    final matchCategory = category == null || transaction.category == category;
-    final matchPayment = paymentMode == null || transaction.paymentMode == paymentMode;
-    final matchDate = (startDate == null || !transaction.createdAt.isBefore(startDate!)) &&
-        (endDate == null || !transaction.createdAt.isAfter(endDate!));
-    return matchType && matchMember && matchCategory && matchPayment && matchDate;
-  }
-
-  TransactionFilter copyWith({
-    TransactionType? type,
-    String? memberUid,
-    String? category,
-    String? paymentMode,
-    DateTime? startDate,
-    DateTime? endDate,
-  }) {
-    return TransactionFilter(
-      type: type ?? this.type,
-      memberUid: memberUid ?? this.memberUid,
-      category: category ?? this.category,
-      paymentMode: paymentMode ?? this.paymentMode,
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
-    );
-  }
-
-  static const empty = TransactionFilter();
-}
-
-final transactionFilterProvider = StateProvider<TransactionFilter>((ref) => TransactionFilter.empty);
-
-final transactionsProvider = StreamProvider.autoDispose.family<List<BookTransaction>, (String shelfId, String bookId)>((ref, key) {
-  final (shelfId, bookId) = key;
-  if (shelfId.isEmpty || bookId.isEmpty) {
-    return Stream<List<BookTransaction>>.empty();
-  }
-  final filter = ref.watch(transactionFilterProvider);
-  return ref.watch(firestoreServiceProvider).watchTransactions(shelfId: shelfId, bookId: bookId).map((txns) {
-    return txns.where(filter.matches).toList();
-  });
+/// Stream all transactions for a specific account
+final transactionsProvider = StreamProvider.family<List<AccountTransaction>, String>((ref, accountId) {
+  if (accountId.isEmpty) return const Stream.empty();
+  final service = ref.watch(firestoreServiceProvider);
+  return service.watchTransactions(accountId);
 });
 
+/// Stream pending transactions (with due dates, not paid)
+final pendingTransactionsProvider = StreamProvider.family<List<AccountTransaction>, String>((ref, accountId) {
+  if (accountId.isEmpty) return const Stream.empty();
+  final service = ref.watch(firestoreServiceProvider);
+  return service.watchPendingTransactions(accountId);
+});
+
+/// Stream overdue transactions
+final overdueTransactionsProvider = StreamProvider.family<List<AccountTransaction>, String>((ref, accountId) {
+  if (accountId.isEmpty) return const Stream.empty();
+  final service = ref.watch(firestoreServiceProvider);
+  return service.watchOverdueTransactions(accountId);
+});
+
+/// Controller for transaction operations
 final transactionControllerProvider = StateNotifierProvider<TransactionController, AsyncValue<void>>((ref) {
-  return TransactionController(ref.watch(firestoreServiceProvider));
-});
-
-final transactionExporterProvider = Provider<TransactionExporter>((ref) {
-  return TransactionExporter();
+  return TransactionController(ref.watch(firestoreServiceProvider), ref.watch(firebaseAuthProvider));
 });
 
 class TransactionController extends StateNotifier<AsyncValue<void>> {
-  TransactionController(this._service) : super(const AsyncData(null));
+  TransactionController(this._service, this._auth) : super(const AsyncData(null));
 
   final FirestoreService _service;
+  final _auth;
 
-  Future<void> addTransaction(BookTransaction transaction) async {
+  Future<void> addTransaction(String accountId, AccountTransaction transaction) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.addTransaction(transaction));
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('No user logged in');
+
+      final newTransaction = transaction.copyWith(
+        id: '',
+        createdByUid: user.uid,
+      );
+
+      await _service.addTransaction(newTransaction);
+      state = const AsyncData(null);
+    } catch (e, stack) {
+      state = AsyncError(e, stack);
+    }
   }
 
-  Future<void> deleteTransaction(String shelfId, String bookId, String transactionId) async {
+  Future<void> updateTransaction(AccountTransaction transaction) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.deleteTransaction(shelfId: shelfId, bookId: bookId, transactionId: transactionId));
+    try {
+      await _service.updateTransaction(transaction);
+      state = const AsyncData(null);
+    } catch (e, stack) {
+      state = AsyncError(e, stack);
+    }
+  }
+
+  Future<void> markTransactionAsPaid(String accountId, String transactionId) async {
+    state = const AsyncLoading();
+    try {
+      await _service.markTransactionAsPaid(accountId, transactionId);
+      state = const AsyncData(null);
+    } catch (e, stack) {
+      state = AsyncError(e, stack);
+    }
+  }
+
+  Future<void> deleteTransaction(String accountId, String transactionId) async {
+    state = const AsyncLoading();
+    try {
+      await _service.deleteTransaction(accountId, transactionId);
+      state = const AsyncData(null);
+    } catch (e, stack) {
+      state = AsyncError(e, stack);
+    }
   }
 }

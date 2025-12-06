@@ -9,8 +9,7 @@ part 'friend_loan.g.dart';
 class FriendLoan with _$FriendLoan {
   const factory FriendLoan({
     required String id,
-    required String shelfId,
-    required String bookId,
+    required String accountId,
     required String contactId,
     @Default(0.0) double totalYouGave,
     @Default(0.0) double totalYouTook,

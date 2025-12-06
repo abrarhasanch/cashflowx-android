@@ -23,8 +23,7 @@ LoanEvent _$LoanEventFromJson(Map<String, dynamic> json) {
 mixin _$LoanEvent {
   String get id => throw _privateConstructorUsedError;
   String get loanId => throw _privateConstructorUsedError;
-  String get shelfId => throw _privateConstructorUsedError;
-  String get bookId => throw _privateConstructorUsedError;
+  String get accountId => throw _privateConstructorUsedError;
   LoanEventType get type => throw _privateConstructorUsedError;
   double get amount => throw _privateConstructorUsedError;
   @TimestampConverter()
@@ -50,8 +49,7 @@ abstract class $LoanEventCopyWith<$Res> {
   $Res call({
     String id,
     String loanId,
-    String shelfId,
-    String bookId,
+    String accountId,
     LoanEventType type,
     double amount,
     @TimestampConverter() DateTime? createdAt,
@@ -77,8 +75,7 @@ class _$LoanEventCopyWithImpl<$Res, $Val extends LoanEvent>
   $Res call({
     Object? id = null,
     Object? loanId = null,
-    Object? shelfId = null,
-    Object? bookId = null,
+    Object? accountId = null,
     Object? type = null,
     Object? amount = null,
     Object? createdAt = freezed,
@@ -95,13 +92,9 @@ class _$LoanEventCopyWithImpl<$Res, $Val extends LoanEvent>
                 ? _value.loanId
                 : loanId // ignore: cast_nullable_to_non_nullable
                       as String,
-            shelfId: null == shelfId
-                ? _value.shelfId
-                : shelfId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            bookId: null == bookId
-                ? _value.bookId
-                : bookId // ignore: cast_nullable_to_non_nullable
+            accountId: null == accountId
+                ? _value.accountId
+                : accountId // ignore: cast_nullable_to_non_nullable
                       as String,
             type: null == type
                 ? _value.type
@@ -141,8 +134,7 @@ abstract class _$$LoanEventImplCopyWith<$Res>
   $Res call({
     String id,
     String loanId,
-    String shelfId,
-    String bookId,
+    String accountId,
     LoanEventType type,
     double amount,
     @TimestampConverter() DateTime? createdAt,
@@ -167,8 +159,7 @@ class __$$LoanEventImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? loanId = null,
-    Object? shelfId = null,
-    Object? bookId = null,
+    Object? accountId = null,
     Object? type = null,
     Object? amount = null,
     Object? createdAt = freezed,
@@ -185,13 +176,9 @@ class __$$LoanEventImplCopyWithImpl<$Res>
             ? _value.loanId
             : loanId // ignore: cast_nullable_to_non_nullable
                   as String,
-        shelfId: null == shelfId
-            ? _value.shelfId
-            : shelfId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        bookId: null == bookId
-            ? _value.bookId
-            : bookId // ignore: cast_nullable_to_non_nullable
+        accountId: null == accountId
+            ? _value.accountId
+            : accountId // ignore: cast_nullable_to_non_nullable
                   as String,
         type: null == type
             ? _value.type
@@ -224,8 +211,7 @@ class _$LoanEventImpl implements _LoanEvent {
   const _$LoanEventImpl({
     required this.id,
     required this.loanId,
-    required this.shelfId,
-    required this.bookId,
+    required this.accountId,
     required this.type,
     required this.amount,
     @TimestampConverter() this.createdAt,
@@ -241,9 +227,7 @@ class _$LoanEventImpl implements _LoanEvent {
   @override
   final String loanId;
   @override
-  final String shelfId;
-  @override
-  final String bookId;
+  final String accountId;
   @override
   final LoanEventType type;
   @override
@@ -258,7 +242,7 @@ class _$LoanEventImpl implements _LoanEvent {
 
   @override
   String toString() {
-    return 'LoanEvent(id: $id, loanId: $loanId, shelfId: $shelfId, bookId: $bookId, type: $type, amount: $amount, createdAt: $createdAt, createdByUid: $createdByUid, note: $note)';
+    return 'LoanEvent(id: $id, loanId: $loanId, accountId: $accountId, type: $type, amount: $amount, createdAt: $createdAt, createdByUid: $createdByUid, note: $note)';
   }
 
   @override
@@ -268,8 +252,8 @@ class _$LoanEventImpl implements _LoanEvent {
             other is _$LoanEventImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.loanId, loanId) || other.loanId == loanId) &&
-            (identical(other.shelfId, shelfId) || other.shelfId == shelfId) &&
-            (identical(other.bookId, bookId) || other.bookId == bookId) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.createdAt, createdAt) ||
@@ -285,8 +269,7 @@ class _$LoanEventImpl implements _LoanEvent {
     runtimeType,
     id,
     loanId,
-    shelfId,
-    bookId,
+    accountId,
     type,
     amount,
     createdAt,
@@ -312,8 +295,7 @@ abstract class _LoanEvent implements LoanEvent {
   const factory _LoanEvent({
     required final String id,
     required final String loanId,
-    required final String shelfId,
-    required final String bookId,
+    required final String accountId,
     required final LoanEventType type,
     required final double amount,
     @TimestampConverter() final DateTime? createdAt,
@@ -329,9 +311,7 @@ abstract class _LoanEvent implements LoanEvent {
   @override
   String get loanId;
   @override
-  String get shelfId;
-  @override
-  String get bookId;
+  String get accountId;
   @override
   LoanEventType get type;
   @override

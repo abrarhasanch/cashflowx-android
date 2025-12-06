@@ -18,8 +18,7 @@ class LoanEvent with _$LoanEvent {
   const factory LoanEvent({
     required String id,
     required String loanId,
-    required String shelfId,
-    required String bookId,
+    required String accountId,
     required LoanEventType type,
     required double amount,
     @TimestampConverter() DateTime? createdAt,

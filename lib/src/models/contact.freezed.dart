@@ -22,8 +22,7 @@ Contact _$ContactFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Contact {
   String get id => throw _privateConstructorUsedError;
-  String get shelfId => throw _privateConstructorUsedError;
-  String get bookId => throw _privateConstructorUsedError;
+  String get accountId => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
   String? get email => throw _privateConstructorUsedError;
@@ -48,8 +47,7 @@ abstract class $ContactCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
-    String shelfId,
-    String bookId,
+    String accountId,
     String name,
     String? phone,
     String? email,
@@ -75,8 +73,7 @@ class _$ContactCopyWithImpl<$Res, $Val extends Contact>
   @override
   $Res call({
     Object? id = null,
-    Object? shelfId = null,
-    Object? bookId = null,
+    Object? accountId = null,
     Object? name = null,
     Object? phone = freezed,
     Object? email = freezed,
@@ -90,13 +87,9 @@ class _$ContactCopyWithImpl<$Res, $Val extends Contact>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as String,
-            shelfId: null == shelfId
-                ? _value.shelfId
-                : shelfId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            bookId: null == bookId
-                ? _value.bookId
-                : bookId // ignore: cast_nullable_to_non_nullable
+            accountId: null == accountId
+                ? _value.accountId
+                : accountId // ignore: cast_nullable_to_non_nullable
                       as String,
             name: null == name
                 ? _value.name
@@ -138,8 +131,7 @@ abstract class _$$ContactImplCopyWith<$Res> implements $ContactCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
-    String shelfId,
-    String bookId,
+    String accountId,
     String name,
     String? phone,
     String? email,
@@ -164,8 +156,7 @@ class __$$ContactImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? shelfId = null,
-    Object? bookId = null,
+    Object? accountId = null,
     Object? name = null,
     Object? phone = freezed,
     Object? email = freezed,
@@ -179,13 +170,9 @@ class __$$ContactImplCopyWithImpl<$Res>
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as String,
-        shelfId: null == shelfId
-            ? _value.shelfId
-            : shelfId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        bookId: null == bookId
-            ? _value.bookId
-            : bookId // ignore: cast_nullable_to_non_nullable
+        accountId: null == accountId
+            ? _value.accountId
+            : accountId // ignore: cast_nullable_to_non_nullable
                   as String,
         name: null == name
             ? _value.name
@@ -221,8 +208,7 @@ class __$$ContactImplCopyWithImpl<$Res>
 class _$ContactImpl implements _Contact {
   const _$ContactImpl({
     required this.id,
-    required this.shelfId,
-    required this.bookId,
+    required this.accountId,
     required this.name,
     this.phone,
     this.email,
@@ -237,9 +223,7 @@ class _$ContactImpl implements _Contact {
   @override
   final String id;
   @override
-  final String shelfId;
-  @override
-  final String bookId;
+  final String accountId;
   @override
   final String name;
   @override
@@ -256,7 +240,7 @@ class _$ContactImpl implements _Contact {
 
   @override
   String toString() {
-    return 'Contact(id: $id, shelfId: $shelfId, bookId: $bookId, name: $name, phone: $phone, email: $email, notes: $notes, createdAt: $createdAt, createdByUid: $createdByUid)';
+    return 'Contact(id: $id, accountId: $accountId, name: $name, phone: $phone, email: $email, notes: $notes, createdAt: $createdAt, createdByUid: $createdByUid)';
   }
 
   @override
@@ -265,8 +249,8 @@ class _$ContactImpl implements _Contact {
         (other.runtimeType == runtimeType &&
             other is _$ContactImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.shelfId, shelfId) || other.shelfId == shelfId) &&
-            (identical(other.bookId, bookId) || other.bookId == bookId) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.phone, phone) || other.phone == phone) &&
             (identical(other.email, email) || other.email == email) &&
@@ -282,8 +266,7 @@ class _$ContactImpl implements _Contact {
   int get hashCode => Object.hash(
     runtimeType,
     id,
-    shelfId,
-    bookId,
+    accountId,
     name,
     phone,
     email,
@@ -309,8 +292,7 @@ class _$ContactImpl implements _Contact {
 abstract class _Contact implements Contact {
   const factory _Contact({
     required final String id,
-    required final String shelfId,
-    required final String bookId,
+    required final String accountId,
     required final String name,
     final String? phone,
     final String? email,
@@ -324,9 +306,7 @@ abstract class _Contact implements Contact {
   @override
   String get id;
   @override
-  String get shelfId;
-  @override
-  String get bookId;
+  String get accountId;
   @override
   String get name;
   @override

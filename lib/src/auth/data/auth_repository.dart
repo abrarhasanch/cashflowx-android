@@ -65,6 +65,10 @@ class AuthRepository {
     await _auth.signOut();
   }
 
+  Future<void> resetPassword(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
   Future<void> updateUser(AppUser user) {
     return _firestore.collection('users').doc(user.uid).update(user.toJson());
   }

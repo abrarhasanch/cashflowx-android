@@ -13,7 +13,12 @@
           "package_name": "com.abrar.cashflowx"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "887389400100-j7sp0oasdgs18j5j9biu55cm4tbh7olo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDVzqXnt-PZAfD5lmVR1AZ9DcQKFVd5JDw"
@@ -21,7 +26,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "887389400100-j7sp0oasdgs18j5j9biu55cm4tbh7olo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

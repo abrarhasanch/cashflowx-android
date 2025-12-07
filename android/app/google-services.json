@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "887389400100-5dahncj69q60o4cv6jjlesp8868rg41g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.abrar.cashflowx",
+            "certificate_hash": "df26bc2528145353625ac398e7305051154307b1"
+          }
+        },
+        {
           "client_id": "887389400100-j7sp0oasdgs18j5j9biu55cm4tbh7olo.apps.googleusercontent.com",
           "client_type": 3
         }

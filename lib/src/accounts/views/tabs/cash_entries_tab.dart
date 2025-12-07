@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -649,8 +651,12 @@ class _TransactionDetailSheet extends ConsumerWidget {
                   child: ElevatedButton.icon(
                     onPressed: () async {
                       final controller = ref.read(transactionControllerProvider.notifier);
-                      await controller.markTransactionAsPaid(accountId, transaction.id);
-                      if (context.mounted) Navigator.pop(context);
+                      final navigator = Navigator.of(context);
+                      navigator.pop();
+                      unawaited(controller.markTransactionAsPaid(accountId, transaction.id));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Marked as paid')),
+                      );
                     },
                     icon: const Icon(Icons.check_circle),
                     label: const Text('Mark as Paid'),
@@ -709,8 +715,12 @@ class _TransactionDetailSheet extends ConsumerWidget {
                       
                       if (confirmed == true && context.mounted) {
                         final controller = ref.read(transactionControllerProvider.notifier);
-                        await controller.deleteTransaction(accountId, transaction.id);
-                        if (context.mounted) Navigator.pop(context);
+                        final navigator = Navigator.of(context);
+                        navigator.pop();
+                        unawaited(controller.deleteTransaction(accountId, transaction.id));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Transaction deleted')),
+                        );
                       }
                     },
                     icon: const Icon(Icons.delete),
@@ -1139,24 +1149,61 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                 
                 const SizedBox(height: 24),
                 
-                // Submit Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryTeal,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                // Submit Buttons
+                if (isEditing)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => _submit(closeAfter: true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryTeal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 6,
+                        shadowColor: AppTheme.primaryTeal.withAlpha(76),
                       ),
-                      elevation: 6,
-                      shadowColor: AppTheme.primaryTeal.withAlpha(76),
+                      child: const Text('Update Transaction'),
                     ),
-                    child: Text(isEditing ? 'Update Transaction' : 'Add Transaction'),
+                  )
+                else
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => _submit(closeAfter: false, addAnother: true),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.primaryTeal,
+                            side: BorderSide(color: AppTheme.primaryTeal.withAlpha(204)),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text('Save & Add New'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => _submit(closeAfter: true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryTeal,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 6,
+                            shadowColor: AppTheme.primaryTeal.withAlpha(76),
+                          ),
+                          child: const Text('Save'),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
               ],
             ),
           ),
@@ -1165,7 +1212,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     );
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit({required bool closeAfter, bool addAnother = false}) async {
     if (!_formKey.currentState!.validate()) return;
     if (_hasDueDate && _dueDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1174,6 +1221,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
       return;
     }
 
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     final controller = ref.read(transactionControllerProvider.notifier);
     final amount = double.parse(_amountController.text);
 
@@ -1193,18 +1242,35 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     );
 
     if (widget.transaction != null) {
-      await controller.updateTransaction(transaction);
-    } else {
-      await controller.addTransaction(widget.accountId, transaction);
+      if (closeAfter) navigator.pop();
+      unawaited(controller.updateTransaction(transaction).then((_) {
+        messenger.showSnackBar(const SnackBar(content: Text('Transaction updated')));
+      }));
+      return;
     }
-    
-    if (mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(widget.transaction == null ? 'Transaction added' : 'Transaction updated'),
-        ),
-      );
+
+    // New transaction flows
+    if (addAnother) {
+      unawaited(controller.addTransaction(widget.accountId, transaction).then((_) {
+        messenger.showSnackBar(const SnackBar(content: Text('Transaction added')));
+      }));
+      _amountController.clear();
+      _remarkController.clear();
+      _categoryController.clear();
+      _paymentModeController.clear();
+      setState(() {
+        _dueDate = null;
+        _hasDueDate = false;
+        _createdAt = DateTime.now();
+      });
+      return;
+    }
+
+    if (closeAfter) {
+      navigator.pop();
+      unawaited(controller.addTransaction(widget.accountId, transaction).then((_) {
+        messenger.showSnackBar(const SnackBar(content: Text('Transaction added')));
+      }));
     }
   }
 }

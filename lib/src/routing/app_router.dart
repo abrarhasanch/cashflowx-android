@@ -65,7 +65,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/accounts',
-        builder: (context, state) => const AccountsListScreen(),
+        builder: (context, state) => AccountsListScreen(
+          openCreate: state.uri.queryParameters['create'] == 'true',
+        ),
       ),
       GoRoute(
         path: '/accounts/:accountId',

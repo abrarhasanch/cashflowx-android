@@ -55,12 +55,16 @@ class AuthRepository {
   Future<void> signInWithGoogle() async {
     if (kIsWeb) {
       final provider = GoogleAuthProvider();
-      await _auth.signInWithPopup(provider);
+      final cred = await _auth.signInWithPopup(provider);
+      if (cred.user != null) {
+        await _ensureUserDocument(cred.user!);
+      }
       return;
     }
 
     // Mobile/desktop
     final googleSignIn = GoogleSignIn(
+      scopes: const ['email', 'profile'],
       serverClientId: !kIsWeb && Platform.isIOS ? _auth.app.options.iosClientId : null,
     );
     final account = await googleSignIn.signIn();
@@ -70,11 +74,19 @@ class AuthRepository {
       accessToken: auth.accessToken,
       idToken: auth.idToken,
     );
-    await _auth.signInWithCredential(credential);
+    final result = await _auth.signInWithCredential(credential);
+    if (result.user != null) {
+      await _ensureUserDocument(result.user!);
+    }
   }
 
   Future<void> signOut() async {
     await _auth.signOut();
+    // Also disconnect from Google to avoid stale sessions
+    final google = GoogleSignIn();
+    if (await google.isSignedIn()) {
+      await google.disconnect();
+    }
   }
 
   Future<void> resetPassword(String email) async {
@@ -83,5 +95,19 @@ class AuthRepository {
 
   Future<void> updateUser(AppUser user) {
     return _firestore.collection('users').doc(user.uid).update(user.toJson());
+  }
+
+  Future<void> _ensureUserDocument(User firebaseUser) async {
+    final doc = await _firestore.collection('users').doc(firebaseUser.uid).get();
+    if (doc.exists) return;
+
+    final newUser = AppUser(
+      uid: firebaseUser.uid,
+      email: firebaseUser.email ?? '',
+      displayName: firebaseUser.displayName,
+      photoUrl: firebaseUser.photoURL,
+      createdAt: DateTime.now(),
+    );
+    await _firestore.collection('users').doc(firebaseUser.uid).set(newUser.toJson());
   }
 }

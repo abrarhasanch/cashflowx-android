@@ -472,7 +472,7 @@ class _QuickAddAccountButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => context.go('/accounts/create'),
+      onTap: () => context.go('/accounts?create=true'),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         width: double.infinity,

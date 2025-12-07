@@ -8,11 +8,34 @@ import '../../theme/app_theme.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/empty_state.dart';
 
-class AccountsListScreen extends ConsumerWidget {
-  const AccountsListScreen({super.key});
+class AccountsListScreen extends ConsumerStatefulWidget {
+  const AccountsListScreen({super.key, this.openCreate = false});
+
+  final bool openCreate;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AccountsListScreen> createState() => _AccountsListScreenState();
+}
+
+class _AccountsListScreenState extends ConsumerState<AccountsListScreen> {
+  bool _createSheetOpened = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Delay to allow navigation to complete before opening sheet
+    if (widget.openCreate) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_createSheetOpened) {
+          _createSheetOpened = true;
+          _showCreateAccountSheet(context, ref, 'BDT');
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final accountsAsync = ref.watch(accountsProvider);
 
     return Scaffold(

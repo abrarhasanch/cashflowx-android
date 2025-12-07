@@ -90,15 +90,16 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> with 
                   width: double.infinity,
                   padding: const EdgeInsets.fromLTRB(16, 18, 16, 14),
                   decoration: BoxDecoration(
-                    gradient: AppTheme.primaryGradient,
+                    color: Theme.of(context).cardColor,
+                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
+                    border: Border.all(color: Theme.of(context).dividerColor.withAlpha(120)),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.primaryGreen.withAlpha(60),
-                        blurRadius: 26,
-                        offset: const Offset(0, 12),
+                        color: Colors.black.withAlpha(30),
+                        blurRadius: 18,
+                        offset: const Offset(0, 10),
                       ),
                     ],
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,8 +125,8 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> with 
                                       account.title,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: Theme.of(context).textTheme.bodyLarge?.color,
                                         fontWeight: FontWeight.w800,
                                         fontSize: 18,
                                       ),
@@ -136,7 +137,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> with 
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          color: Colors.white.withAlpha(210),
+                                          color: Theme.of(context).textTheme.bodyMedium?.color,
                                           fontSize: 12,
                                         ),
                                       ),
@@ -168,18 +169,18 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> with 
                       const SizedBox(height: 16),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(22),
+                          color: Theme.of(context).colorScheme.surface.withAlpha(230),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withAlpha(40)),
+                          border: Border.all(color: Theme.of(context).dividerColor.withAlpha(120)),
                         ),
                         child: TabBar(
                           controller: _tabController,
                           indicator: BoxDecoration(
-                            color: Colors.white,
+                            color: AppTheme.primaryGreen.withAlpha(26),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           labelColor: AppTheme.primaryGreen,
-                          unselectedLabelColor: Colors.white.withAlpha(200),
+                          unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
                           labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
                           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                           tabs: const [
